@@ -1,5 +1,6 @@
 import os
 import collections
+import psutil
 
 from pikka_bird_collector.collectors.system import System
 
@@ -34,6 +35,32 @@ class TestSystem:
             f_flag=1772,
             f_namemax=1773)
     
+    def mock_disk_partitions(self, all=False):
+        MockDiskPartition = collections.namedtuple('MockDiskPartition', [
+            'device',
+            'mountpoint',
+            'fstype',
+            'opts'])
+        
+        return [MockDiskPartition(
+            device='/dev/disk42',
+            mountpoint='/',
+            fstype='zaphod',
+            opts='rw,local,rootfs,dovolfs,journaled,multilabel,interplanetary')]
+    
+    def mock_disk_usage(self, mount):
+        MockDiskUsage = collections.namedtuple('MockDiskUsage', [
+            'total',
+            'used',
+            'free',
+            'percent'])
+        
+        return MockDiskUsage(
+            total=100440011101,
+            used=1800538114,
+            free=98639472987,
+            percent=0.01)
+    
     def test_enabled(self):
         system = System({})
         
@@ -51,8 +78,8 @@ class TestSystem:
         
         metrics_disk = metrics['system']['disk']['/']
         
-        assert type(metrics_disk['block_size']) == int
-        assert type(metrics_disk['fragment_size']) == int
+        assert type(metrics_disk['block_size_b']) == int
+        assert type(metrics_disk['fragment_size_b']) == int
         assert type(metrics_disk['blocks']) == int
         assert type(metrics_disk['blocks_free']) == int
         assert type(metrics_disk['blocks_free_/']) == float
@@ -65,10 +92,19 @@ class TestSystem:
         assert type(metrics_disk['inodes_free_unpriv_/']) == float
         assert type(metrics_disk['flags']) == int
         assert type(metrics_disk['filename_len_max']) == int
+        assert type(metrics_disk['device']) == str
+        assert type(metrics_disk['fstype']) == str
+        assert type(metrics_disk['space_b']) == int
+        assert type(metrics_disk['space_used_b']) == int
+        assert type(metrics_disk['space_used_/']) == float
+        assert type(metrics_disk['space_free_b']) == int
+        assert type(metrics_disk['space_free_/']) == float
     
     def test_collect_mocked(self, monkeypatch):
         monkeypatch.setattr(os, 'getloadavg', self.mock_getloadavg)
         monkeypatch.setattr(os, 'statvfs', self.mock_statvfs)
+        monkeypatch.setattr(psutil, 'disk_partitions', self.mock_disk_partitions)
+        monkeypatch.setattr(psutil, 'disk_usage', self.mock_disk_usage)
         
         system = System({})
         metrics = system.collect()
@@ -78,9 +114,11 @@ class TestSystem:
             'blocks_free_/',
             'blocks_free_unpriv_/',
             'inodes_free_/',
-            'inodes_free_unpriv_/']:
+            'inodes_free_unpriv_/',
+            'space_used_/',
+            'space_free_/']:
             metrics['system']['disk']['/'][metric] = round(
-                    metrics['system']['disk']['/'][metric])
+                    metrics['system']['disk']['/'][metric], 2)
         
         assert metrics == {
             'system': {
@@ -90,39 +128,55 @@ class TestSystem:
                     'avg_15_min': 126},
                 'disk': {
                     '/': {
-                        'block_size': 1764,
-                        'fragment_size': 1765,
+                        'block_size_b': 1764,
+                        'fragment_size_b': 1765,
                         'blocks': 42,
                         'blocks_free': 74088,
-                        'blocks_free_/': 1764,
+                        'blocks_free_/': 1764.0,
                         'blocks_free_unpriv': 1768,
-                        'blocks_free_unpriv_/': 42,
+                        'blocks_free_unpriv_/': 42.1,
                         'inodes': 1769,
                         'inodes_free': 130691232,
-                        'inodes_free_/': 73879,
+                        'inodes_free_/': 73878.59,
                         'inodes_free_unpriv': 3111696,
-                        'inodes_free_unpriv_/': 1759,
+                        'inodes_free_unpriv_/': 1759.01,
                         'flags': 1772,
-                        'filename_len_max': 1773}}}}
+                        'filename_len_max': 1773,
+                        'device': '/dev/disk42',
+                        'fstype': 'zaphod',
+                        'space_b': 100440011101,
+                        'space_used_b': 1800538114,
+                        'space_used_/': 0.02,
+                        'space_free_b': 98639472987,
+                        'space_free_/': 0.98}}}}
     
     def test_collect_load_oserror(self, monkeypatch):
         def mock_getloadavg():
             raise OSError
         
         monkeypatch.setattr(os, 'getloadavg', mock_getloadavg)
-        monkeypatch.setattr(os, 'statvfs', self.mock_statvfs)
         
         system = System({})
         metrics = system.collect()
         
         assert metrics['system']['load'] == {}
     
-    def test_collect_disk_filenotfounderror(self, monkeypatch):
+    def test_collect_disk_statvfs_filenotfounderror(self, monkeypatch):
         def mock_statvfs(mount):
             raise FileNotFoundError
         
-        monkeypatch.setattr(os, 'getloadavg', self.mock_getloadavg)
         monkeypatch.setattr(os, 'statvfs', mock_statvfs)
+        
+        system = System({})
+        metrics = system.collect()
+        
+        assert metrics['system']['disk']['/'] == {}
+    
+    def test_collect_disk_disk_usage_oserror(self, monkeypatch):
+        def mock_disk_usage(mount):
+            raise OSError
+        
+        monkeypatch.setattr(psutil, 'disk_usage', mock_disk_usage)
         
         system = System({})
         metrics = system.collect()

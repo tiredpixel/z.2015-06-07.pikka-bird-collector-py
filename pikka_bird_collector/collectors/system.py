@@ -1,4 +1,5 @@
 import os
+import psutil
 
 from pikka_bird_collector.collectors.base import Base
 
@@ -28,15 +29,16 @@ class System(Base):
     def __disk(self):
         metrics = {}
         
-        mounts = ['/']
+        partitions = [p for p in psutil.disk_partitions(all=False)]
         
-        for mount in mounts:
+        for partition in partitions:
             try:
-                stats = os.statvfs(mount)
+                stats = os.statvfs(partition.mountpoint)
+                usage = psutil.disk_usage(partition.mountpoint)
                 
-                metrics[mount] = {
-                    'block_size':           stats.f_bsize,
-                    'fragment_size':        stats.f_frsize,
+                metrics[partition.mountpoint] = {
+                    'block_size_b':         stats.f_bsize,
+                    'fragment_size_b':      stats.f_frsize,
                     'blocks':               stats.f_blocks,
                     'blocks_free':          stats.f_bfree,
                     'blocks_free_/':        (stats.f_bfree / stats.f_blocks),
@@ -48,8 +50,15 @@ class System(Base):
                     'inodes_free_unpriv':   stats.f_favail,
                     'inodes_free_unpriv_/': (stats.f_favail / stats.f_files),
                     'flags':                stats.f_flag,
-                    'filename_len_max':     stats.f_namemax}
-            except FileNotFoundError:
-                metrics[mount] = {}
+                    'filename_len_max':     stats.f_namemax,
+                    'device':               partition.device,
+                    'fstype':               partition.fstype,
+                    'space_b':              usage.total,
+                    'space_used_b':         usage.used,
+                    'space_used_/':         (usage.used / usage.total),
+                    'space_free_b':         usage.free,
+                    'space_free_/':         (usage.free / usage.total)}
+            except (FileNotFoundError, OSError):
+                metrics[partition.mountpoint] = {}
         
         return metrics
