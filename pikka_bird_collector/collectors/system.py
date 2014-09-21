@@ -10,8 +10,9 @@ class System(Base):
     
     def collect(self):
         return {
-            'load': self.__load(),
-            'disk': self.__disk()}
+            'system': {
+                'load': self.__load(),
+                'disk': self.__disk()}}
     
     def __load(self):
         try:
