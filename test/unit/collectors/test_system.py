@@ -10,6 +10,31 @@ class TestSystem:
     def mock_getloadavg(self):
         return (42, 84, 126)
     
+    def mock_cpu_times_percent(self, interval=None, percpu=False):
+        MockCpuTimesPercent = collections.namedtuple('MockCpuTimesPercent', [
+            'user',
+            'system',
+            'idle',
+            'nice',
+            'iowait',
+            'irq',
+            'softirq',
+            'steal',
+            'guest',
+            'guest_nice'])
+        
+        return [MockCpuTimesPercent(
+            user=1,
+            system=2,
+            idle=55,
+            nice=3,
+            iowait=4,
+            irq=5,
+            softirq=6,
+            steal=7,
+            guest=8,
+            guest_nice=9)]
+    
     def mock_statvfs(self, mount):
         MockStatvfs = collections.namedtuple('MockStatvfs', [
             'f_bsize',
@@ -76,6 +101,13 @@ class TestSystem:
         assert type(metrics_load['avg_5_min']) == float
         assert type(metrics_load['avg_15_min']) == float
         
+        metrics_cpu = metrics['system']['cpu'][0] # hopefully at least 1 CPU! ;)
+        
+        assert type(metrics_cpu['idle_/']) == float
+        assert type(metrics_cpu['busy_/']) == float
+        assert type(metrics_cpu['busy_user_/']) == float
+        assert type(metrics_cpu['busy_system_/']) == float
+        
         metrics_disk = metrics['system']['disk']['/']
         
         assert type(metrics_disk['block_size_b']) == int
@@ -103,13 +135,32 @@ class TestSystem:
     def test_collect_mocked(self, monkeypatch):
         monkeypatch.setattr(os, 'getloadavg', self.mock_getloadavg)
         monkeypatch.setattr(os, 'statvfs', self.mock_statvfs)
-        monkeypatch.setattr(psutil, 'disk_partitions', self.mock_disk_partitions)
+        monkeypatch.setattr(psutil, 'cpu_times_percent',
+                self.mock_cpu_times_percent)
+        monkeypatch.setattr(psutil, 'disk_partitions',
+                self.mock_disk_partitions)
         monkeypatch.setattr(psutil, 'disk_usage', self.mock_disk_usage)
         
         system = System({})
         metrics = system.collect()
         
         # round floats (like beach balls)
+        
+        for metric in [
+            'idle_/',
+            'busy_/',
+            'busy_user_/',
+            'busy_system_/',
+            'busy_nice_/',
+            'busy_iowait_/',
+            'busy_irq_/',
+            'busy_softirq_/',
+            'busy_steal_/',
+            'busy_guest_/',
+            'busy_guest_nice_/']:
+            metrics['system']['cpu'][0][metric] = round(
+                    metrics['system']['cpu'][0][metric], 2)
+        
         for metric in [
             'blocks_free_/',
             'blocks_free_unpriv_/',
@@ -120,12 +171,27 @@ class TestSystem:
             metrics['system']['disk']['/'][metric] = round(
                     metrics['system']['disk']['/'][metric], 2)
         
+        #
+        
         assert metrics == {
             'system': {
                 'load': {
                     'avg_1_min': 42,
                     'avg_5_min': 84,
                     'avg_15_min': 126},
+                'cpu': {
+                    0: {
+                        'idle_/': 0.55,
+                        'busy_/': 0.45,
+                        'busy_user_/': 0.01,
+                        'busy_system_/': 0.02,
+                        'busy_nice_/': 0.03,
+                        'busy_iowait_/': 0.04,
+                        'busy_irq_/': 0.05,
+                        'busy_softirq_/': 0.06,
+                        'busy_steal_/': 0.07,
+                        'busy_guest_/': 0.08,
+                        'busy_guest_nice_/': 0.09}},
                 'disk': {
                     '/': {
                         'block_size_b': 1764,
