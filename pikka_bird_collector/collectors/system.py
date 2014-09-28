@@ -12,9 +12,10 @@ class System(Base):
     def collect(self):
         return {
             'system': {
-                'load': self.__load(),
-                'cpu':  self.__cpu(),
-                'disk': self.__disk()}}
+                'load':   self.__load(),
+                'cpu':    self.__cpu(),
+                'memory': self.__memory(),
+                'disk':   self.__disk()}}
     
     def __load(self):
         try:
@@ -50,6 +51,68 @@ class System(Base):
             
             metrics[cpu_i] = { k: v / 100 for k, v in metrics_cpu.items()
                     if v is not False } # filter metrics unavailable on system
+        
+        return metrics
+    
+    def __memory(self):
+        metrics = {}
+        
+        virtual = psutil.virtual_memory()
+        
+        virtual_fs = virtual._fields
+        
+        virtual_unavailable = virtual.total - virtual.available
+        
+        metrics_virtual = {
+            'virtual_b':             virtual.total,
+            'virtual_available_b':   virtual.available,
+            'virtual_available_/':   (virtual.available / virtual.total),
+            'virtual_unavailable_b': virtual_unavailable,
+            'virtual_unavailable_/': (virtual_unavailable / virtual.total),
+            'virtual_used_b':        virtual.used,
+            'virtual_used_/':        (virtual.used / virtual.total),
+            'virtual_free_b':        virtual.free,
+            'virtual_free_/':        (virtual.free / virtual.total),
+            'virtual_active_b':
+                'active' in virtual_fs   and virtual.active,
+            'virtual_active_/':
+                'active' in virtual_fs   and (virtual.active / virtual.total),
+            'virtual_inactive_b':
+                'inactive' in virtual_fs and virtual.inactive,
+            'virtual_inactive_/':
+                'inactive' in virtual_fs and (virtual.inactive / virtual.total),
+            'virtual_buffers_b':
+                'buffers' in virtual_fs  and virtual.buffers,
+            'virtual_buffers_/':
+                'buffers' in virtual_fs  and (virtual.buffers / virtual.total),
+            'virtual_cached_b':
+                'cached' in virtual_fs   and virtual.cached,
+            'virtual_cached_/':
+                'cached' in virtual_fs   and (virtual.cached / virtual.total),
+            'virtual_wired_b':
+                'wired' in virtual_fs    and virtual.wired,
+            'virtual_wired_/':
+                'wired' in virtual_fs    and (virtual.wired / virtual.total),
+            'virtual_shared_b':
+                'shared' in virtual_fs   and virtual.shared,
+            'virtual_shared_/':
+                'shared' in virtual_fs   and (virtual.shared / virtual.total)}
+        
+        metrics.update({ k: v for k, v in metrics_virtual.items()
+                    if v is not False }) # filter metrics unavailable on system
+        
+        swap = psutil.swap_memory()
+        
+        metrics_swap = {
+            'swap_b':      swap.total,
+            'swap_used_b': swap.used,
+            'swap_used_/': (swap.used / swap.total),
+            'swap_free_b': swap.free,
+            'swap_free_/': (swap.free / swap.total),
+            'sin_b':       swap.sin,
+            'sout_b':      swap.sout}
+        
+        metrics.update(metrics_swap)
         
         return metrics
     

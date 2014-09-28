@@ -35,6 +35,46 @@ class TestSystem:
             guest=8,
             guest_nice=9)]
     
+    def mock_virtual_memory(self):
+        MockVirtualMemory = collections.namedtuple('MockVirtualMemory', [
+            'total',
+            'available',
+            'used',
+            'free',
+            'active',
+            'inactive',
+            'buffers',
+            'cached',
+            'wired',
+            'shared'])
+        
+        return MockVirtualMemory(
+            total=8589934592,
+            available=4248592384,
+            used=4688113664,
+            free=3279757312,
+            active=2415570944,
+            inactive=968835072,
+            buffers=258020000,
+            cached=241716800,
+            wired=1303707648,
+            shared=50448000)
+    
+    def mock_swap_memory(self):
+        MockSwapMemory = collections.namedtuple('MockSwapMemory', [
+            'total',
+            'used',
+            'free',
+            'sin',
+            'sout'])
+        
+        return MockSwapMemory(
+            total=2147483648,
+            used=1196949504,
+            free=950534144,
+            sin=66084589568,
+            sout=1213657088)
+    
     def mock_statvfs(self, mount):
         MockStatvfs = collections.namedtuple('MockStatvfs', [
             'f_bsize',
@@ -108,6 +148,25 @@ class TestSystem:
         assert type(metrics_cpu['busy_user_/']) == float
         assert type(metrics_cpu['busy_system_/']) == float
         
+        metrics_memory = metrics['system']['memory']
+        
+        assert type(metrics_memory['virtual_b']) == int
+        assert type(metrics_memory['virtual_available_b']) == int
+        assert type(metrics_memory['virtual_available_/']) == float
+        assert type(metrics_memory['virtual_unavailable_b']) == int
+        assert type(metrics_memory['virtual_unavailable_/']) == float
+        assert type(metrics_memory['virtual_used_b']) == int
+        assert type(metrics_memory['virtual_used_/']) == float
+        assert type(metrics_memory['virtual_free_b']) == int
+        assert type(metrics_memory['virtual_free_/']) == float
+        assert type(metrics_memory['swap_b']) == int
+        assert type(metrics_memory['swap_used_b']) == int
+        assert type(metrics_memory['swap_used_/']) == float
+        assert type(metrics_memory['swap_free_b']) == int
+        assert type(metrics_memory['swap_free_/']) == float
+        assert type(metrics_memory['sin_b']) == int
+        assert type(metrics_memory['sout_b']) == int
+        
         metrics_disk = metrics['system']['disk']['/']
         
         assert type(metrics_disk['block_size_b']) == int
@@ -137,6 +196,10 @@ class TestSystem:
         monkeypatch.setattr(os, 'statvfs', self.mock_statvfs)
         monkeypatch.setattr(psutil, 'cpu_times_percent',
                 self.mock_cpu_times_percent)
+        monkeypatch.setattr(psutil, 'virtual_memory',
+                self.mock_virtual_memory)
+        monkeypatch.setattr(psutil, 'swap_memory',
+                self.mock_swap_memory)
         monkeypatch.setattr(psutil, 'disk_partitions',
                 self.mock_disk_partitions)
         monkeypatch.setattr(psutil, 'disk_usage', self.mock_disk_usage)
@@ -160,6 +223,22 @@ class TestSystem:
             'busy_guest_nice_/']:
             metrics['system']['cpu'][0][metric] = round(
                     metrics['system']['cpu'][0][metric], 2)
+        
+        for metric in [
+            'virtual_available_/',
+            'virtual_unavailable_/',
+            'virtual_used_/',
+            'virtual_free_/',
+            'virtual_active_/',
+            'virtual_inactive_/',
+            'virtual_buffers_/',
+            'virtual_cached_/',
+            'virtual_wired_/',
+            'virtual_shared_/',
+            'swap_used_/',
+            'swap_free_/']:
+            metrics['system']['memory'][metric] = round(
+                    metrics['system']['memory'][metric], 2)
         
         for metric in [
             'blocks_free_/',
@@ -192,6 +271,35 @@ class TestSystem:
                         'busy_steal_/': 0.07,
                         'busy_guest_/': 0.08,
                         'busy_guest_nice_/': 0.09}},
+                'memory': {
+                    'virtual_b': 8589934592,
+                    'virtual_available_b': 4248592384,
+                    'virtual_available_/': 0.49,
+                    'virtual_unavailable_b': 4341342208,
+                    'virtual_unavailable_/': 0.51,
+                    'virtual_used_b': 4688113664,
+                    'virtual_used_/': 0.55,
+                    'virtual_free_b': 3279757312,
+                    'virtual_free_/': 0.38,
+                    'virtual_active_b': 2415570944,
+                    'virtual_active_/': 0.28,
+                    'virtual_inactive_b': 968835072,
+                    'virtual_inactive_/': 0.11,
+                    'virtual_buffers_b': 258020000,
+                    'virtual_buffers_/': 0.03,
+                    'virtual_cached_b': 241716800,
+                    'virtual_cached_/': 0.03,
+                    'virtual_wired_b': 1303707648,
+                    'virtual_wired_/': 0.15,
+                    'virtual_shared_b': 50448000,
+                    'virtual_shared_/': 0.01,
+                    'swap_b': 2147483648,
+                    'swap_used_b': 1196949504,
+                    'swap_used_/': 0.56,
+                    'swap_free_b': 950534144,
+                    'swap_free_/': 0.44,
+                    'sin_b': 66084589568,
+                    'sout_b': 1213657088},
                 'disk': {
                     '/': {
                         'block_size_b': 1764,
