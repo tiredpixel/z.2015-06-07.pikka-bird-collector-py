@@ -2,11 +2,12 @@
 
 import argparse
 import logging
+import os
 
 import pikka_bird_collector.collector
 
 
-logger = logging.getLogger('pikka-bird')
+logger = logging.getLogger(str(os.getpid()))
 logger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter(
@@ -29,6 +30,9 @@ parser = argparse.ArgumentParser(
 #     help="output location (default: stdout)")
 
 args = parser.parse_args()
+
+
+logger.info("Pikka Bird Collector v%(v)s" % { 'v': pikka_bird_collector.__version__ })
 
 
 collector = pikka_bird_collector.collector.Collector(logger=logger)
