@@ -8,15 +8,14 @@ import pikka_bird_collector.collector
 
 
 logger = logging.getLogger(str(os.getpid()))
-logger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter(
     '[%(asctime)s] %(levelname)s -- %(name)s: %(message)s')
 
 ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
 ch.setFormatter(formatter)
 
+logger.setLevel(os.environ['LOG_LEVEL'])
 logger.addHandler(ch)
 
 
