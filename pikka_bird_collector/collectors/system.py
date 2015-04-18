@@ -22,9 +22,9 @@ class System(Base):
             load1, load5, load15 = os.getloadavg()
             
             return {
-                'avg_1_min':  load1,
-                'avg_5_min':  load5,
-                'avg_15_min': load15}
+                '1_min_avg':  load1,
+                '5_min_avg':  load5,
+                '15_min_avg': load15}
         except OSError:
             return {}
     
@@ -49,7 +49,7 @@ class System(Base):
                 'busy_guest_/':      'guest' in ctp_fs      and ctp.guest,
                 'busy_guest_nice_/': 'guest_nice' in ctp_fs and ctp.guest_nice}
             
-            metrics[cpu_i] = { k: v / 100 for k, v in metrics_cpu.items()
+            metrics[int(cpu_i)] = { k: v / 100 for k, v in metrics_cpu.items()
                     if v is not False } # filter metrics unavailable on system
         
         return metrics

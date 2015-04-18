@@ -137,9 +137,9 @@ class TestSystem:
         
         metrics_load = metrics['system']['load']
         
-        assert type(metrics_load['avg_1_min']) == float
-        assert type(metrics_load['avg_5_min']) == float
-        assert type(metrics_load['avg_15_min']) == float
+        assert type(metrics_load['1_min_avg']) == float
+        assert type(metrics_load['5_min_avg']) == float
+        assert type(metrics_load['15_min_avg']) == float
         
         metrics_cpu = metrics['system']['cpu'][0] # hopefully at least 1 CPU! ;)
         
@@ -255,9 +255,9 @@ class TestSystem:
         assert metrics == {
             'system': {
                 'load': {
-                    'avg_1_min': 42,
-                    'avg_5_min': 84,
-                    'avg_15_min': 126},
+                    '1_min_avg': 42,
+                    '5_min_avg': 84,
+                    '15_min_avg': 126},
                 'cpu': {
                     0: {
                         'idle_/': 0.55,
