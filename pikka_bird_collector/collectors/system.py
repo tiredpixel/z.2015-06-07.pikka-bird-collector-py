@@ -50,7 +50,7 @@ class System(Base):
                 'busy_guest_/':      'guest' in ctp_fs      and ctp.guest,
                 'busy_guest_nice_/': 'guest_nice' in ctp_fs and ctp.guest_nice}
             
-            metrics[int(cpu_i)] = { k: v / 100 for k, v in metrics_cpu.items()
+            metrics[cpu_i] = { k: v / 100 for k, v in metrics_cpu.items()
                     if v is not False } # filter metrics unavailable on system
         
         return metrics
