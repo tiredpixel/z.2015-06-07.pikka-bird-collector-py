@@ -19,7 +19,7 @@ class Collector():
         self.logger      = logger or logging.getLogger()
     
     def collect(self):
-        collecting_at = datetime.datetime.now()
+        collecting_at = datetime.datetime.utcnow()
         self.logger.info("COLLECTING")
         
         reports = {}
@@ -38,7 +38,7 @@ class Collector():
             else:
                 self.logger.info("SKIPPED " + collector_klass.__name__)
         
-        collected_at = datetime.datetime.now()
+        collected_at = datetime.datetime.utcnow()
         self.logger.info("COLLECTED")
         
         return self.__format_collection(
