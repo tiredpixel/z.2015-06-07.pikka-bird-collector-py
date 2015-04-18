@@ -5,11 +5,13 @@ import logging
 import os
 
 import pikka_bird_collector.collector
+import pikka_bird_collector.sender
 
 
 defaults = {
     'command': 'collect',
-    'log_level': 'INFO'}
+    'log_level': 'INFO',
+    'server_uri': 'http://localhost:5000'}
 
 parser = argparse.ArgumentParser(
     description="Pikka Bird monitoring tool Collector component.")
@@ -19,6 +21,11 @@ parser.add_argument('-c', '--command',
     choices=['collect'],
     default=defaults['command'],
     help="command (default: %(command)s)" % defaults)
+
+parser.add_argument('-s', '--server-uri',
+    metavar='SERVER_URI',
+    default=defaults['server_uri'],
+    help="server URI (default: %(server_uri)s))" % defaults)
 
 parser.add_argument('--log-level',
     metavar='LOG_LEVEL',
@@ -46,5 +53,10 @@ logger.addHandler(ch)
 
 
 if args.command == 'collect':
-    collector = pikka_bird_collector.collector.Collector(logger=logger)
-    collector.collect()
+    collector = pikka_bird_collector.collector.Collector(
+        logger=logger)
+    sender = pikka_bird_collector.sender.Sender(args.server_uri,
+        logger=logger)
+    
+    collection = collector.collect()
+    sender.send(collection)
