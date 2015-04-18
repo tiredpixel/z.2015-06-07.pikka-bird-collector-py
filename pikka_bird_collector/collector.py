@@ -1,3 +1,4 @@
+import datetime
 import logging
 import importlib
 import platform
@@ -12,13 +13,16 @@ for c in COLLECTORS:
 
 
 class Collector():
-
+    
     def __init__(self, logger=None):
         self.environment = self.__environment()
         self.logger      = logger or logging.getLogger()
     
     def collect(self):
+        collecting_at = datetime.datetime.now()
         self.logger.info("COLLECTING")
+        
+        reports = {}
         
         for collector_klass in self.__collector_klasses():
             collector = collector_klass(self.environment)
@@ -26,13 +30,21 @@ class Collector():
             if collector.enabled():
                 self.logger.info("COLLECTING " + collector_klass.__name__)
                 
-                metrics = collector.collect()
+                service, metrics = collector.collect()
                 
-                self.logger.info("COLLECTED " + collector_klass.__name__ + " " + str(metrics))
+                reports[service] = metrics
+                
+                self.logger.info("COLLECTED " + collector_klass.__name__ + " " + service + " " + str(metrics))
             else:
                 self.logger.info("SKIPPED " + collector_klass.__name__)
         
+        collected_at = datetime.datetime.now()
         self.logger.info("COLLECTED")
+        
+        return self.__format_collection(
+            collecting_at=collecting_at,
+            collected_at=collected_at,
+            reports=reports)
     
     def __environment(self):
         return {
@@ -45,3 +57,10 @@ class Collector():
         
         return [getattr(sys.modules[module_base + c], c.title())
             for c in COLLECTORS]
+    
+    def __format_collection(self,
+            collecting_at=None, collected_at=None, reports=None):
+        return {
+            'collecting_at': collecting_at.isoformat(),
+            'collected_at': collected_at.isoformat(),
+            'reports': reports}

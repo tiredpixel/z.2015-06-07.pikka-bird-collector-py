@@ -12,12 +12,11 @@ class System(Base):
         return True # always attempt to collect system metrics
     
     def collect(self):
-        return {
-            'system': {
-                'load':   self.__load(),
-                'cpu':    self.__cpu(),
-                'memory': self.__memory(),
-                'disk':   self.__disk()}}
+        return ('system', {
+            'load':   self.__load(),
+            'cpu':    self.__cpu(),
+            'memory': self.__memory(),
+            'disk':   self.__disk()})
     
     def __load(self):
         try:
