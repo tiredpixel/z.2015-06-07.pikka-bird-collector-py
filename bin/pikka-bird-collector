@@ -7,6 +7,18 @@ import os
 import pikka_bird_collector.collector
 
 
+parser = argparse.ArgumentParser(
+    description="Pikka Bird monitoring tool Collector component.")
+
+parser.add_argument('--log-level',
+    metavar='LOG_LEVEL',
+    choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+    default='INFO',
+    help="log-level (default: INFO)")
+
+args = parser.parse_args()
+
+
 logger = logging.getLogger(str(os.getpid()))
 
 formatter = logging.Formatter(
@@ -15,24 +27,11 @@ formatter = logging.Formatter(
 ch = logging.StreamHandler()
 ch.setFormatter(formatter)
 
-logger.setLevel(os.environ['LOG_LEVEL'])
+logger.setLevel(args.log_level)
 logger.addHandler(ch)
 
 
-parser = argparse.ArgumentParser(
-    description="Pikka Bird monitoring tool metrics collector.")
-
-# parser.add_argument('-o', '--output',
-#     metavar='OUTPUT',
-#     choices=['stdout'],
-#     default='stdout',
-#     help="output location (default: stdout)")
-
-args = parser.parse_args()
-
-
 logger.info("Pikka Bird Collector v%(v)s" % { 'v': pikka_bird_collector.__version__ })
-
 
 collector = pikka_bird_collector.collector.Collector(logger=logger)
 
