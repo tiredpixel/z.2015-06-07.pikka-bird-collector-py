@@ -26,6 +26,10 @@ parser.add_argument('--log-level',
     default=defaults['log_level'],
     help="log-level (default: %(log_level)s))" % defaults)
 
+parser.add_argument('-v', '--version',
+    action='version',
+    version="Pikka Bird Collector v%(v)s" % { 'v': pikka_bird_collector.__version__ })
+
 args = parser.parse_args()
 
 
@@ -42,6 +46,5 @@ logger.addHandler(ch)
 
 
 if args.command == 'collect':
-    logger.info("Pikka Bird Collector v%(v)s" % { 'v': pikka_bird_collector.__version__ })
     collector = pikka_bird_collector.collector.Collector(logger=logger)
     collector.collect()
