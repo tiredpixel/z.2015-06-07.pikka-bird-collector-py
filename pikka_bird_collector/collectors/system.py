@@ -6,6 +6,8 @@ from pikka_bird_collector.collectors.base import Base
 
 class System(Base):
     
+    CPU_SAMPLE_S = 0.1
+    
     def enabled(self):
         return True # always attempt to collect system metrics
     
@@ -31,7 +33,7 @@ class System(Base):
     def __cpu(self):
         metrics = {}
         
-        ctps = psutil.cpu_times_percent(0.5, percpu=True) # sample 0.5 s
+        ctps = psutil.cpu_times_percent(self.CPU_SAMPLE_S, percpu=True)
         
         for cpu_i, ctp in enumerate(ctps):
             ctp_fs = ctp._fields
