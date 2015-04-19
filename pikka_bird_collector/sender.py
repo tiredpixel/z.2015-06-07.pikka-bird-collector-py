@@ -27,12 +27,24 @@ class Sender():
         try:
             r = requests.post(url, data=data, headers=self.REQUEST_HEADERS)
             r.raise_for_status()
-            logger = self.logger.info
+            status = True
         except requests.exceptions.HTTPError:
-            logger = self.logger.error
+            status = False
+        except requests.exceptions.ConnectionError:
+            self.logger.error("CONNECTION FAILED")
+            return False
+        
+        logger = self.logger.info if status else self.logger.error
+        
+        try:
+            text = r.text
+        except ValueError:
+            text = None
         
         t = datetime.datetime.utcnow()
-        logger("SENT %d %s (%s s)" % (r.status_code, r.text, (t - t_0).seconds))
+        logger("SENT %d %s (%s s)" % (r.status_code, text, (t - t_0).seconds))
+        
+        return status
     
     def __service_url(self, service):
         service_path = self.SERVER_SERVICES[service]
