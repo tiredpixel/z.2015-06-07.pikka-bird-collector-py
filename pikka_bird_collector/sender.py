@@ -1,12 +1,8 @@
 import datetime
 import logging
 import json
-import os
-import socket
 import urllib.parse
 import requests
-
-import pikka_bird_collector
 
 
 class Sender():
@@ -20,12 +16,9 @@ class Sender():
     def __init__(self, server_uri, logger=None):
         self.server_uri = server_uri
         self.logger     = logger or logging.getLogger()
-        
-        self.__set_process()
     
     def send(self, collection):
-        url = self.__service_url('collections')
-        collection.update(self.process)
+        url  = self.__service_url('collections')
         data = json.dumps(collection)
         
         t_0 = datetime.datetime.utcnow()
@@ -40,14 +33,6 @@ class Sender():
         
         t = datetime.datetime.utcnow()
         logger("SENT %d %s (%s s)" % (r.status_code, r.text, (t - t_0).seconds))
-    
-    def __set_process(self):
-        self.process = {
-            'hostname': socket.gethostname(),
-            'pid':      os.getpid(),
-            'version':  pikka_bird_collector.__version__}
-        
-        self.logger.info("PROCESS %s" % self.process)
     
     def __service_url(self, service):
         service_path = self.SERVER_SERVICES[service]

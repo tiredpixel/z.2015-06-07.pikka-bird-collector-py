@@ -1,8 +1,12 @@
 import datetime
-import logging
 import importlib
+import logging
+import os
 import platform
+import socket
 import sys
+
+import pikka_bird_collector
 
 
 COLLECTORS = [
@@ -47,13 +51,18 @@ class Collector():
         return {
             'collecting_at': collecting_at.isoformat(),
             'collected_at':  collected_at.isoformat(),
+            'environment':   self.environment,
             'reports':       reports}
     
     def __set_environment(self):
         self.environment = {
-            'system':  platform.system(),
-            'release': platform.release(),
-            'version': platform.version()}
+            'hostname': socket.gethostname(),
+            'pid':      os.getpid(),
+            'version':  pikka_bird_collector.__version__,
+            'platform': {
+                'system':  platform.system(),
+                'release': platform.release(),
+                'version': platform.version()}}
         
         self.logger.info("ENVIRONMENT %s" % self.environment)
     
@@ -62,4 +71,3 @@ class Collector():
         
         return [getattr(sys.modules[module_base + c], c.title())
             for c in COLLECTORS]
-    
