@@ -178,9 +178,11 @@ class TestSystem:
         assert type(metrics_memory['virtual_free_/']) == float
         assert type(metrics_memory['swap_b']) == int
         assert type(metrics_memory['swap_used_b']) == int
-        assert type(metrics_memory['swap_used_/']) == float
+        if 'swap_used_/' in metrics_memory:
+            assert type(metrics_memory['swap_used_/']) == float
         assert type(metrics_memory['swap_free_b']) == int
-        assert type(metrics_memory['swap_free_/']) == float
+        if 'swap_free_/' in metrics_memory:
+            assert type(metrics_memory['swap_free_/']) == float
         assert type(metrics_memory['sin_b']) == int
         assert type(metrics_memory['sout_b']) == int
         
