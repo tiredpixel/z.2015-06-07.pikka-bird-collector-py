@@ -31,7 +31,7 @@ class Sender():
         except requests.exceptions.HTTPError:
             status = False
         except requests.exceptions.ConnectionError:
-            self.logger.error("CONNECTION FAILED")
+            self.logger.error("SERVER CONNECTION FAILED")
             return False
         
         logger = self.logger.info if status else self.logger.error

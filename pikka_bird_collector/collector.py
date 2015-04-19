@@ -41,7 +41,6 @@ class Collector():
                 reports[service] = metrics
                 
                 self.logger.debug("METRICS %s %s" % (service, metrics))
-                self.logger.info("COLLECTED %s" % name)
             else:
                 self.logger.info("SKIPPED %s" % name)
         
