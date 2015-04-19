@@ -110,10 +110,13 @@ class System(Base):
             'sin_b':       swap.sin,
             'sout_b':      swap.sout,
             'swap_b':      swap.total,
-            'swap_free_/': swap.total and round(swap.free / swap.total, self.RATIO_DP),
             'swap_free_b': swap.free,
-            'swap_used_/': swap.total and round(swap.used / swap.total, self.RATIO_DP),
             'swap_used_b': swap.used}
+        
+        if swap.total > 0:
+            metrics_swap.update({
+                'swap_free_/': round(swap.free / swap.total, self.RATIO_DP),
+                'swap_used_/': round(swap.used / swap.total, self.RATIO_DP)})
         
         metrics.update(metrics_swap)
         
