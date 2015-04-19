@@ -17,6 +17,11 @@ for c in COLLECTORS:
 
 
 class Collector():
+    """
+        Main collector, which calls individual service Collectors and merges the
+        results. The environment, containing such things as PID, hostname, and
+        kernel version, are passed to each collector.
+        """
     
     def __init__(self, logger=None):
         self.logger = logger or logging.getLogger()
@@ -24,6 +29,16 @@ class Collector():
         self.__set_environment()
     
     def collect(self):
+        """
+            Collect metrics for all invididual service Collectors, returning the
+            reports in a format suitable for sending to the Server, complete
+            with dates converted to strings. All times are in UTC, always.
+            
+            RETURN:
+                : dict
+                    collected reports, ready for sending to the Server
+            """
+        
         reports = {}
         
         collecting_at = datetime.datetime.utcnow()

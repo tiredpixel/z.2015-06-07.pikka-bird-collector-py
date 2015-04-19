@@ -13,10 +13,10 @@ setup(
     
     author       = 'tiredpixel',
     author_email = 'tp@tiredpixel.com',
-    description  = "Pikka Bird monitoring tool metrics collector.",
-    license      = '',
+    description  = "Pikka Bird ops monitoring tool Collector component.",
+    license      = 'MIT',
     keywords     = 'monitoring',
-    url          = '',
+    url          = 'https://github.com/tiredpixel/pikka-bird-collector-py',
     
     install_requires = [
     ]

@@ -16,7 +16,7 @@ defaults = {
     'server_uri': 'http://localhost:5000'}
 
 parser = argparse.ArgumentParser(
-    description="Pikka Bird monitoring tool Collector component.")
+    description="Pikka Bird ops monitoring tool Collector component.")
 
 parser.add_argument('-c', '--command',
     metavar='COMMAND',

@@ -5,9 +5,20 @@ from pikka_bird_collector.collectors.base import Base
 
 
 class System(Base):
+    """
+        Collector for system metrics: load, CPU, memory, disk. This is always
+        enabled for any collector. This collector follows one of the design
+        principles of Pikka Bird, which is to collect as many metrics as are
+        available, including with convenience calculations which would require
+        knowledge of which metrics to subtract from which, etc. Many metrics are
+        provided in both their raw form (containing unit within key) and as a
+        ratio (`_/`), which are used in preference to percentages.
+        """
     
+    # accuracy to use for ratios (decimal places)
     RATIO_DP = 4
     
+    # time to sample CPUs (s)
     CPU_SAMPLE_S = 0.1
     
     def enabled(self):

@@ -6,6 +6,9 @@ import requests
 
 
 class Sender():
+    """
+        Sender, for sending collected reports to the Server.
+        """
     
     SERVER_SERVICES = {
         'collections': '/collections'}
@@ -18,6 +21,21 @@ class Sender():
         self.logger     = logger or logging.getLogger()
     
     def send(self, collection):
+        """
+            Send collected reports to the Server, handling failures gracefully.
+            If there is a network failure or the Server does not understand the
+            collection, this is logged and returned as status, with no retry
+            attempted.
+            
+            PARAMETERS:
+                collection : dict
+                    collection of reports, as supplied by `Collector.collect()`
+            
+            RETURN:
+                : boolean
+                    whether sending of metrics was successful
+            """
+        
         url  = self.__service_url('collections')
         data = json.dumps(collection)
         
