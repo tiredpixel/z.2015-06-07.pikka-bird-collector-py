@@ -1,3 +1,4 @@
+import datetime
 import logging
 import json
 import os
@@ -13,37 +14,40 @@ class Sender():
     SERVER_SERVICES = {
         'collections': '/collections'}
     
-    REQUEST_HEADER = {
+    REQUEST_HEADERS = {
         'Content-Type': 'application/json'}
     
     def __init__(self, server_uri, logger=None):
         self.server_uri = server_uri
         self.logger     = logger or logging.getLogger()
         
-        self.__set_meta()
+        self.__set_process()
     
     def send(self, collection):
-        self.logger.info("SENDING")
+        url = self.__service_url('collections')
+        collection.update(self.process)
+        data = json.dumps(collection)
         
-        collection.update(self.meta)
-        
-        r = requests.post(self.__service_url('collections'),
-            data=json.dumps(collection),
-            headers=self.REQUEST_HEADER)
+        t_0 = datetime.datetime.utcnow()
+        self.logger.info("SENDING %s (%d b)" % (url, (len(data.encode('utf-8')))))
         
         try:
+            r = requests.post(url, data=data, headers=self.REQUEST_HEADERS)
             r.raise_for_status()
-            l = self.logger.info
+            logger = self.logger.info
         except requests.exceptions.HTTPError:
-            l = self.logger.error
+            logger = self.logger.error
         
-        l("SENT %(s)s %(t)s" % { 's': r.status_code, 't': r.text })
+        t = datetime.datetime.utcnow()
+        logger("SENT %d %s (%s s)" % (r.status_code, r.text, (t - t_0).seconds))
     
-    def __set_meta(self):
-        self.meta = {
+    def __set_process(self):
+        self.process = {
             'hostname': socket.gethostname(),
-            'pid': os.getpid(),
-            'version': pikka_bird_collector.__version__}
+            'pid':      os.getpid(),
+            'version':  pikka_bird_collector.__version__}
+        
+        self.logger.info("PROCESS %s" % self.process)
     
     def __service_url(self, service):
         service_path = self.SERVER_SERVICES[service]

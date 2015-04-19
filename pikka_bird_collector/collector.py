@@ -15,42 +15,47 @@ for c in COLLECTORS:
 class Collector():
     
     def __init__(self, logger=None):
-        self.environment = self.__environment()
-        self.logger      = logger or logging.getLogger()
+        self.logger = logger or logging.getLogger()
+        
+        self.__set_environment()
     
     def collect(self):
+        reports = {}
+        
         collecting_at = datetime.datetime.utcnow()
         self.logger.info("COLLECTING")
         
-        reports = {}
-        
         for collector_klass in self.__collector_klasses():
             collector = collector_klass(self.environment)
+            name      = collector_klass.__name__
             
             if collector.enabled():
-                self.logger.info("COLLECTING " + collector_klass.__name__)
+                self.logger.info("COLLECTING %s" % name)
                 
                 service, metrics = collector.collect()
                 
                 reports[service] = metrics
                 
-                self.logger.info("COLLECTED " + collector_klass.__name__ + " " + service + " " + str(metrics))
+                self.logger.debug("METRICS %s %s" % (service, metrics))
+                self.logger.info("COLLECTED %s" % name)
             else:
-                self.logger.info("SKIPPED " + collector_klass.__name__)
+                self.logger.info("SKIPPED %s" % name)
         
         collected_at = datetime.datetime.utcnow()
-        self.logger.info("COLLECTED")
+        self.logger.info("COLLECTED (%d s)" % (collected_at - collecting_at).seconds)
         
-        return self.__format_collection(
-            collecting_at=collecting_at,
-            collected_at=collected_at,
-            reports=reports)
-    
-    def __environment(self):
         return {
+            'collecting_at': collecting_at.isoformat(),
+            'collected_at':  collected_at.isoformat(),
+            'reports':       reports}
+    
+    def __set_environment(self):
+        self.environment = {
             'system':  platform.system(),
             'release': platform.release(),
             'version': platform.version()}
+        
+        self.logger.info("ENVIRONMENT %s" % self.environment)
     
     def __collector_klasses(self):
         module_base = 'pikka_bird_collector.collectors.'
@@ -58,9 +63,3 @@ class Collector():
         return [getattr(sys.modules[module_base + c], c.title())
             for c in COLLECTORS]
     
-    def __format_collection(self,
-            collecting_at=None, collected_at=None, reports=None):
-        return {
-            'collecting_at': collecting_at.isoformat(),
-            'collected_at': collected_at.isoformat(),
-            'reports': reports}
