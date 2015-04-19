@@ -51,17 +51,32 @@ class System(Base):
             ctp_fs = ctp._fields
             
             metrics_cpu = {
-                'idle_/':             ctp.idle,
-                'busy_/':            (100 - ctp.idle),
-                'busy_user_/':       ctp.user,
-                'busy_system_/':     ctp.system,
-                'busy_nice_/':       'nice' in ctp_fs and ctp.nice,
-                'busy_iowait_/':     'iowait' in ctp_fs and ctp.iowait,
-                'busy_irq_/':        'irq' in ctp_fs and ctp.irq,
-                'busy_softirq_/':    'softirq' in ctp_fs and ctp.softirq,
-                'busy_steal_/':      'steal' in ctp_fs and ctp.steal,
-                'busy_guest_/':      'guest' in ctp_fs and ctp.guest,
-                'busy_guest_nice_/': 'guest_nice' in ctp_fs and ctp.guest_nice}
+                'idle_/':        ctp.idle,
+                'busy_/':        (100 - ctp.idle),
+                'busy_user_/':   ctp.user,
+                'busy_system_/': ctp.system}
+            
+            if 'nice' in ctp_fs:
+                metrics_cpu.update({
+                    'busy_nice_/': ctp.nice})
+            if 'iowait' in ctp_fs:
+                metrics_cpu.update({
+                    'busy_iowait_/': ctp.iowait})
+            if 'irq' in ctp_fs:
+                metrics_cpu.update({
+                    'busy_irq_/': ctp.irq})
+            if 'softirq' in ctp_fs:
+                metrics_cpu.update({
+                    'busy_softirq_/': ctp.softirq})
+            if 'steal' in ctp_fs:
+                metrics_cpu.update({
+                    'busy_steal_/': ctp.steal})
+            if 'guest' in ctp_fs:
+                metrics_cpu.update({
+                    'busy_guest_/': ctp.guest})
+            if 'guest_nice' in ctp_fs:
+                metrics_cpu.update({
+                    'busy_guest_nice_/': ctp.guest_nice})
             
             metrics[cpu_i] = {
                 k: round(v / 100, self.RATIO_DP) for k, v in metrics_cpu.items()
@@ -79,27 +94,41 @@ class System(Base):
         virtual_unavailable = virtual.total - virtual.available
         
         metrics_virtual = {
-            'virtual_active_/':      'active' in virtual_fs and round(virtual.active / virtual.total, self.RATIO_DP),
-            'virtual_active_b':      'active' in virtual_fs and virtual.active,
+            
             'virtual_available_/':   round(virtual.available / virtual.total, self.RATIO_DP),
             'virtual_available_b':   virtual.available,
             'virtual_b':             virtual.total,
-            'virtual_buffers_/':     'buffers' in virtual_fs and round(virtual.buffers / virtual.total, self.RATIO_DP),
-            'virtual_buffers_b':     'buffers' in virtual_fs and virtual.buffers,
-            'virtual_cached_/':      'cached' in virtual_fs and round(virtual.cached / virtual.total, self.RATIO_DP),
-            'virtual_cached_b':      'cached' in virtual_fs and virtual.cached,
             'virtual_free_/':        round(virtual.free / virtual.total, self.RATIO_DP),
             'virtual_free_b':        virtual.free,
-            'virtual_inactive_/':    'inactive' in virtual_fs and round(virtual.inactive / virtual.total, self.RATIO_DP),
-            'virtual_inactive_b':    'inactive' in virtual_fs and virtual.inactive,
-            'virtual_shared_/':      'shared' in virtual_fs and round(virtual.shared / virtual.total, self.RATIO_DP),
-            'virtual_shared_b':      'shared' in virtual_fs and virtual.shared,
             'virtual_unavailable_/': round(virtual_unavailable / virtual.total, self.RATIO_DP),
             'virtual_unavailable_b': virtual_unavailable,
             'virtual_used_/':        round(virtual.used / virtual.total, self.RATIO_DP),
-            'virtual_used_b':        virtual.used,
-            'virtual_wired_/':       'wired' in virtual_fs and round(virtual.wired / virtual.total, self.RATIO_DP),
-            'virtual_wired_b':       'wired' in virtual_fs and virtual.wired}
+            'virtual_used_b':        virtual.used}
+        
+        if 'active' in virtual_fs:
+            metrics_virtual.update({
+                'virtual_active_/': round(virtual.active / virtual.total, self.RATIO_DP),
+                'virtual_active_b': virtual.active})
+        if 'buffers' in virtual_fs:
+            metrics_virtual.update({
+                'virtual_buffers_/': round(virtual.buffers / virtual.total, self.RATIO_DP),
+                'virtual_buffers_b': virtual.buffers})
+        if 'cached' in virtual_fs:
+            metrics_virtual.update({
+                'virtual_cached_/': round(virtual.cached / virtual.total, self.RATIO_DP),
+                'virtual_cached_b': virtual.cached})
+        if 'inactive' in virtual_fs:
+            metrics_virtual.update({
+                'virtual_inactive_/': round(virtual.inactive / virtual.total, self.RATIO_DP),
+                'virtual_inactive_b': virtual.inactive})
+        if 'shared' in virtual_fs:
+            metrics_virtual.update({
+                'virtual_shared_/': round(virtual.shared / virtual.total, self.RATIO_DP),
+                'virtual_shared_b': virtual.shared})
+        if 'wired' in virtual_fs:
+            metrics_virtual.update({
+                'virtual_wired_/': round(virtual.wired / virtual.total, self.RATIO_DP),
+                'virtual_wired_b': virtual.wired})
         
         metrics.update({ k: v for k, v in metrics_virtual.items()
                     if v is not False }) # filter metrics unavailable on system
