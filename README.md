@@ -83,7 +83,7 @@ Copy the example configuration for development, adjusting to taste:
     cp .env.example .env
 
 Copy the example configuration for testing, adjusting to taste, adding the
-environment variable `CI=1` (the tests are destructive to the database):
+environment variable `CI=true` (the tests are destructive to the database):
 
     cp .env.example .test.env
 

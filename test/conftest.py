@@ -1,5 +1,5 @@
 import os
-if os.environ.get('CI') != '1':
+if os.environ.get('CI') != 'true':
     exit("!!! CI environment variable must be set for testing environment")
 
 import pytest
