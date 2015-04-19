@@ -75,6 +75,21 @@ class TestSystem:
             sin=66084589568,
             sout=1213657088)
     
+    def mock_swap_memory_zero_total(self):
+        MockSwapMemory = collections.namedtuple('MockSwapMemory', [
+            'total',
+            'used',
+            'free',
+            'sin',
+            'sout'])
+        
+        return MockSwapMemory(
+            total=0,
+            used=1196949504,
+            free=950534144,
+            sin=66084589568,
+            sout=1213657088)
+    
     def mock_statvfs(self, mount):
         MockStatvfs = collections.namedtuple('MockStatvfs', [
             'f_bsize',
@@ -326,6 +341,24 @@ class TestSystem:
                     'space_used_/': 0.02,
                     'space_free_b': 98639472987,
                     'space_free_/': 0.98}}}
+    
+    def test_collect_swap_zero_total(self, monkeypatch):
+        monkeypatch.setattr(os, 'getloadavg', self.mock_getloadavg)
+        monkeypatch.setattr(os, 'statvfs', self.mock_statvfs)
+        monkeypatch.setattr(psutil, 'cpu_times_percent',
+                self.mock_cpu_times_percent)
+        monkeypatch.setattr(psutil, 'virtual_memory',
+                self.mock_virtual_memory)
+        monkeypatch.setattr(psutil, 'swap_memory',
+                self.mock_swap_memory_zero_total)
+        monkeypatch.setattr(psutil, 'disk_partitions',
+                self.mock_disk_partitions)
+        monkeypatch.setattr(psutil, 'disk_usage', self.mock_disk_usage)
+        
+        system = System({})
+        service, metrics = system.collect()
+        
+        assert service == 'system'
     
     def test_collect_load_oserror(self, monkeypatch):
         def mock_getloadavg():
