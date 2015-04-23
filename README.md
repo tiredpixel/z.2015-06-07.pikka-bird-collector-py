@@ -11,13 +11,15 @@ application.
 One of the design goals of Pikka Bird is to enable production-suitable setup in
 a minimum of steps and configuration. To support this, Pikka Bird Collector will
 auto-configure wherever possible, and as many services as possible will be
-included within this application, regardless of whether their installed or even
-compatible with the server being monitored. To minimise dependencies, shelling
-out and using service executables directly will be preferred to adding a library
-dependency (e.g. [PostgreSQL][postgresql] `psql` to be used instead of using a
-nice library binding). This will be slower, and cause juggling with paths and
-different systems and shells, but will enable the core dependencies to be kept
-small whilst allowing the supported services to grow into the tens or hundreds.
+included within this application, regardless of whether they're installed or
+even compatible with the server being monitored.
+
+To minimise dependencies, shelling out and using service executables directly
+will be preferred to adding a library dependency (e.g. [PostgreSQL][postgresql]
+`psql` to be used instead of using a nice library binding). This will be slower,
+and cause juggling with paths and different systems and shells, but will enable
+the core dependencies to be kept small whilst allowing the supported services to
+grow into the tens or hundreds.
 
 Pikka Bird Collector is designed to gather and send as many metrics as can be
 found, even if that leads to large reports, with no concept of success or
