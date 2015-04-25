@@ -1,7 +1,10 @@
 import datetime
 import logging
 import json
-import urllib.parse
+try: # COMPAT: Python 2.7
+    import urllib.parse as urllib_parse
+except ImportError:
+    import urlparse as urllib_parse
 import requests
 
 
@@ -67,4 +70,4 @@ class Sender():
     def __service_url(self, service):
         service_path = self.SERVER_SERVICES[service]
         
-        return urllib.parse.urljoin(self.server_uri, service_path)
+        return urllib_parse.urljoin(self.server_uri, service_path)

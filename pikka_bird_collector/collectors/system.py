@@ -79,7 +79,8 @@ class System(Base):
                     'busy_guest_nice_/': ctp.guest_nice})
             
             metrics[cpu_i] = {
-                k: round(v / 100, self.RATIO_DP) for k, v in metrics_cpu.items()
+                k: round(v / 100.0, self.RATIO_DP)
+                    for k, v in metrics_cpu.items()
                     if v is not False } # filter metrics unavailable on system
         
         return metrics
@@ -93,41 +94,42 @@ class System(Base):
         
         virtual_unavailable = virtual.total - virtual.available
         
+        virtual_total = float(virtual.total) # COMPAT: Python 2.7
+        
         metrics_virtual = {
-            
-            'virtual_available_/':   round(virtual.available / virtual.total, self.RATIO_DP),
+            'virtual_available_/':   round(virtual.available / virtual_total, self.RATIO_DP),
             'virtual_available_b':   virtual.available,
             'virtual_b':             virtual.total,
-            'virtual_free_/':        round(virtual.free / virtual.total, self.RATIO_DP),
+            'virtual_free_/':        round(virtual.free / virtual_total, self.RATIO_DP),
             'virtual_free_b':        virtual.free,
-            'virtual_unavailable_/': round(virtual_unavailable / virtual.total, self.RATIO_DP),
+            'virtual_unavailable_/': round(virtual_unavailable / virtual_total, self.RATIO_DP),
             'virtual_unavailable_b': virtual_unavailable,
-            'virtual_used_/':        round(virtual.used / virtual.total, self.RATIO_DP),
+            'virtual_used_/':        round(virtual.used / virtual_total, self.RATIO_DP),
             'virtual_used_b':        virtual.used}
         
         if 'active' in virtual_fs:
             metrics_virtual.update({
-                'virtual_active_/': round(virtual.active / virtual.total, self.RATIO_DP),
+                'virtual_active_/': round(virtual.active / virtual_total, self.RATIO_DP),
                 'virtual_active_b': virtual.active})
         if 'buffers' in virtual_fs:
             metrics_virtual.update({
-                'virtual_buffers_/': round(virtual.buffers / virtual.total, self.RATIO_DP),
+                'virtual_buffers_/': round(virtual.buffers / virtual_total, self.RATIO_DP),
                 'virtual_buffers_b': virtual.buffers})
         if 'cached' in virtual_fs:
             metrics_virtual.update({
-                'virtual_cached_/': round(virtual.cached / virtual.total, self.RATIO_DP),
+                'virtual_cached_/': round(virtual.cached / virtual_total, self.RATIO_DP),
                 'virtual_cached_b': virtual.cached})
         if 'inactive' in virtual_fs:
             metrics_virtual.update({
-                'virtual_inactive_/': round(virtual.inactive / virtual.total, self.RATIO_DP),
+                'virtual_inactive_/': round(virtual.inactive / virtual_total, self.RATIO_DP),
                 'virtual_inactive_b': virtual.inactive})
         if 'shared' in virtual_fs:
             metrics_virtual.update({
-                'virtual_shared_/': round(virtual.shared / virtual.total, self.RATIO_DP),
+                'virtual_shared_/': round(virtual.shared / virtual_total, self.RATIO_DP),
                 'virtual_shared_b': virtual.shared})
         if 'wired' in virtual_fs:
             metrics_virtual.update({
-                'virtual_wired_/': round(virtual.wired / virtual.total, self.RATIO_DP),
+                'virtual_wired_/': round(virtual.wired / virtual_total, self.RATIO_DP),
                 'virtual_wired_b': virtual.wired})
         
         metrics.update({ k: v for k, v in metrics_virtual.items()
@@ -142,10 +144,12 @@ class System(Base):
             'swap_free_b': swap.free,
             'swap_used_b': swap.used}
         
+        swap_total = float(swap.total) # COMPAT: Python 2.7
+        
         if swap.total > 0:
             metrics_swap.update({
-                'swap_free_/': round(swap.free / swap.total, self.RATIO_DP),
-                'swap_used_/': round(swap.used / swap.total, self.RATIO_DP)})
+                'swap_free_/': round(swap.free / swap_total, self.RATIO_DP),
+                'swap_used_/': round(swap.used / swap_total, self.RATIO_DP)})
         
         metrics.update(metrics_swap)
         
@@ -161,13 +165,17 @@ class System(Base):
                 stats = os.statvfs(partition.mountpoint)
                 usage = psutil.disk_usage(partition.mountpoint)
                 
+                stats_f_blocks = float(stats.f_blocks) # COMPAT: Python 2.7
+                stats_f_files  = float(stats.f_files) # COMPAT: Python 2.7
+                usage_total    = float(usage.total) # COMPAT: Python 2.7
+                
                 metrics[partition.mountpoint] = {
                     'block_size_b':         stats.f_bsize,
                     'blocks':               stats.f_blocks,
                     'blocks_free':          stats.f_bfree,
-                    'blocks_free_/':        round(stats.f_bfree / stats.f_blocks, self.RATIO_DP),
+                    'blocks_free_/':        round(stats.f_bfree / stats_f_blocks, self.RATIO_DP),
                     'blocks_free_unpriv':   stats.f_bavail,
-                    'blocks_free_unpriv_/': round(stats.f_bavail / stats.f_blocks, self.RATIO_DP),
+                    'blocks_free_unpriv_/': round(stats.f_bavail / stats_f_blocks, self.RATIO_DP),
                     'device':               partition.device,
                     'filename_len_max':     stats.f_namemax,
                     'flags':                stats.f_flag,
@@ -175,13 +183,13 @@ class System(Base):
                     'fstype':               partition.fstype,
                     'inodes':               stats.f_files,
                     'inodes_free':          stats.f_ffree,
-                    'inodes_free_/':        round(stats.f_ffree / stats.f_files, self.RATIO_DP),
+                    'inodes_free_/':        round(stats.f_ffree / stats_f_files, self.RATIO_DP),
                     'inodes_free_unpriv':   stats.f_favail,
-                    'inodes_free_unpriv_/': round(stats.f_favail / stats.f_files, self.RATIO_DP),
+                    'inodes_free_unpriv_/': round(stats.f_favail / stats_f_files, self.RATIO_DP),
                     'space_b':              usage.total,
-                    'space_free_/':         round(usage.free / usage.total, self.RATIO_DP),
+                    'space_free_/':         round(usage.free / usage_total, self.RATIO_DP),
                     'space_free_b':         usage.free,
-                    'space_used_/':         round(usage.used / usage.total, self.RATIO_DP),
+                    'space_used_/':         round(usage.used / usage_total, self.RATIO_DP),
                     'space_used_b':         usage.used}
             except (IOError, OSError):
                 metrics[partition.mountpoint] = {}

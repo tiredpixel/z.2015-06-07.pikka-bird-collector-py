@@ -8,7 +8,7 @@ from pikka_bird_collector.collectors.system import System
 class TestSystem:
     
     def mock_getloadavg(self):
-        return (42, 84, 126)
+        return (42.0, 84.0, 126.0)
     
     def mock_cpu_times_percent(self, interval=None, percpu=False):
         MockCpuTimesPercent = collections.namedtuple('MockCpuTimesPercent', [
@@ -167,47 +167,52 @@ class TestSystem:
         
         metrics_memory = metrics['memory']
         
-        assert type(metrics_memory['virtual_b']) == int
-        assert type(metrics_memory['virtual_available_b']) == int
+        try: # COMPAT: Python 2.7
+            int_ish = [long, int]
+        except NameError:
+            int_ish = [int]
+        
+        assert type(metrics_memory['virtual_b']) in int_ish
+        assert type(metrics_memory['virtual_available_b']) in int_ish
         assert type(metrics_memory['virtual_available_/']) == float
-        assert type(metrics_memory['virtual_unavailable_b']) == int
+        assert type(metrics_memory['virtual_unavailable_b']) in int_ish
         assert type(metrics_memory['virtual_unavailable_/']) == float
-        assert type(metrics_memory['virtual_used_b']) == int
+        assert type(metrics_memory['virtual_used_b']) in int_ish
         assert type(metrics_memory['virtual_used_/']) == float
-        assert type(metrics_memory['virtual_free_b']) == int
+        assert type(metrics_memory['virtual_free_b']) in int_ish
         assert type(metrics_memory['virtual_free_/']) == float
-        assert type(metrics_memory['swap_b']) == int
-        assert type(metrics_memory['swap_used_b']) == int
+        assert type(metrics_memory['swap_b']) in int_ish
+        assert type(metrics_memory['swap_used_b']) in int_ish
         if 'swap_used_/' in metrics_memory:
             assert type(metrics_memory['swap_used_/']) == float
-        assert type(metrics_memory['swap_free_b']) == int
+        assert type(metrics_memory['swap_free_b']) in int_ish
         if 'swap_free_/' in metrics_memory:
             assert type(metrics_memory['swap_free_/']) == float
-        assert type(metrics_memory['sin_b']) == int
-        assert type(metrics_memory['sout_b']) == int
+        assert type(metrics_memory['sin_b']) in int_ish
+        assert type(metrics_memory['sout_b']) in int_ish
         
         metrics_disk = metrics['disk']['/']
         
-        assert type(metrics_disk['block_size_b']) == int
-        assert type(metrics_disk['fragment_size_b']) == int
-        assert type(metrics_disk['blocks']) == int
-        assert type(metrics_disk['blocks_free']) == int
+        assert type(metrics_disk['block_size_b']) in int_ish
+        assert type(metrics_disk['fragment_size_b']) in int_ish
+        assert type(metrics_disk['blocks']) in int_ish
+        assert type(metrics_disk['blocks_free']) in int_ish
         assert type(metrics_disk['blocks_free_/']) == float
-        assert type(metrics_disk['blocks_free_unpriv']) == int
+        assert type(metrics_disk['blocks_free_unpriv']) in int_ish
         assert type(metrics_disk['blocks_free_unpriv_/']) == float
-        assert type(metrics_disk['inodes']) == int
-        assert type(metrics_disk['inodes_free']) == int
+        assert type(metrics_disk['inodes']) in int_ish
+        assert type(metrics_disk['inodes_free']) in int_ish
         assert type(metrics_disk['inodes_free_/']) == float
-        assert type(metrics_disk['inodes_free_unpriv']) == int
+        assert type(metrics_disk['inodes_free_unpriv']) in int_ish
         assert type(metrics_disk['inodes_free_unpriv_/']) == float
-        assert type(metrics_disk['flags']) == int
-        assert type(metrics_disk['filename_len_max']) == int
+        assert type(metrics_disk['flags']) in int_ish
+        assert type(metrics_disk['filename_len_max']) in int_ish
         assert type(metrics_disk['device']) == str
         assert type(metrics_disk['fstype']) == str
-        assert type(metrics_disk['space_b']) == int
-        assert type(metrics_disk['space_used_b']) == int
+        assert type(metrics_disk['space_b']) in int_ish
+        assert type(metrics_disk['space_used_b']) in int_ish
         assert type(metrics_disk['space_used_/']) == float
-        assert type(metrics_disk['space_free_b']) == int
+        assert type(metrics_disk['space_free_b']) in int_ish
         assert type(metrics_disk['space_free_/']) == float
     
     def test_collect_mocked(self, monkeypatch):
@@ -275,9 +280,9 @@ class TestSystem:
         
         assert metrics == {
             'load': {
-                '1_min_avg': 42,
-                '5_min_avg': 84,
-                '15_min_avg': 126},
+                '1_min_avg': 42.0,
+                '5_min_avg': 84.0,
+                '15_min_avg': 126.0},
             'cpu': {
                 0: {
                     'idle_/': 0.55,
