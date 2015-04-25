@@ -183,7 +183,7 @@ class System(Base):
                     'space_free_b':         usage.free,
                     'space_used_/':         round(usage.used / usage.total, self.RATIO_DP),
                     'space_used_b':         usage.used}
-            except (FileNotFoundError, OSError):
+            except (IOError, OSError):
                 metrics[partition.mountpoint] = {}
         
         return metrics

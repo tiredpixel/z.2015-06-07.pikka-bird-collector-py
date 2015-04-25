@@ -377,7 +377,7 @@ class TestSystem:
     
     def test_collect_disk_statvfs_filenotfounderror(self, monkeypatch):
         def mock_statvfs(mount):
-            raise FileNotFoundError
+            raise IOError
         
         monkeypatch.setattr(os, 'statvfs', mock_statvfs)
         
