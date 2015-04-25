@@ -12,6 +12,7 @@ import pikka_bird_collector.sender
 
 defaults = {
     'command': 'collect',
+    'format': 'binary',
     'log_level': 'INFO',
     'server_uri': 'http://localhost:5000'}
 
@@ -23,6 +24,12 @@ parser.add_argument('-c', '--command',
     choices=['collect'],
     default=defaults['command'],
     help="command (default: %(command)s)" % defaults)
+
+parser.add_argument('-f', '--format',
+    metavar='FORMAT',
+    choices=['binary', 'json'],
+    default=defaults['format'],
+    help="format (default: %(format)s)" % defaults)
 
 parser.add_argument('-s', '--server-uri',
     metavar='SERVER_URI',
@@ -69,6 +76,7 @@ if args.command == 'collect':
     collector = pikka_bird_collector.collector.Collector(
         logger=logger)
     sender = pikka_bird_collector.sender.Sender(args.server_uri,
+        format=args.format,
         logger=logger)
     
     running = True
