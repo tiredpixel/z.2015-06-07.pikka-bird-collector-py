@@ -5,6 +5,7 @@ try: # COMPAT: Python 2.7
     import urllib.parse as urllib_parse
 except ImportError:
     import urlparse as urllib_parse
+import msgpack
 import requests
 
 
@@ -16,11 +17,9 @@ class Sender():
     SERVER_SERVICES = {
         'collections': '/collections'}
     
-    REQUEST_HEADERS = {
-        'Content-Type': 'application/json'}
-    
-    def __init__(self, server_uri, logger=None):
+    def __init__(self, server_uri, format='binary', logger=None):
         self.server_uri = server_uri
+        self.format     = format
         self.logger     = logger or logging.getLogger()
     
     def send(self, collection):
@@ -40,13 +39,13 @@ class Sender():
             """
         
         url  = self.__service_url('collections')
-        data = json.dumps(collection)
+        headers, data = self.__pack_collection(collection)
         
         t_0 = datetime.datetime.utcnow()
-        self.logger.info("SENDING %s (%d b)" % (url, (len(data.encode('utf-8')))))
+        self.logger.info("SENDING %s %s (%d b)" % (url, self.format, len(data)))
         
         try:
-            r = requests.post(url, data=data, headers=self.REQUEST_HEADERS)
+            r = requests.post(url, data=data, headers=headers)
             r.raise_for_status()
             status = True
         except requests.exceptions.HTTPError:
@@ -71,3 +70,13 @@ class Sender():
         service_path = self.SERVER_SERVICES[service]
         
         return urllib_parse.urljoin(self.server_uri, service_path)
+    
+    def __pack_collection(self, collection):
+        if self.format == 'binary':
+            headers = { 'Content-Type': 'application/octet-stream' }
+            data    = msgpack.packb(collection)
+        elif self.format == 'json':
+            headers = { 'Content-Type': 'application/json' }
+            data    = json.dumps(collection)
+        
+        return (headers, data)

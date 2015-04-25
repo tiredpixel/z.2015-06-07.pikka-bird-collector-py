@@ -1,4 +1,6 @@
+import json
 from httmock import urlmatch, HTTMock
+import msgpack
 
 from pikka_bird_collector.sender import Sender
 
@@ -9,6 +11,12 @@ SERVER_URI  = 'http://%s' % SERVER_HOST
 
 @urlmatch(netloc=SERVER_HOST, path='/collections', method='post')
 def mock_collections_post_201(url, request):
+    # force parse
+    if request.headers['Content-Type'] == 'application/json':
+        json.loads(request.body)
+    elif request.headers['Content-Type'] == 'application/octet-stream':
+        msgpack.unpackb(request.body, encoding='utf-8')
+    
     return {
         'status_code': 201,
         'content':     {}}
@@ -33,8 +41,16 @@ def mock_collections_post_500(url, request):
 
 class TestSender:
     
-    def test_send(self, collection_valid):
-        sender = Sender(SERVER_URI)
+    def test_send_json(self, collection_valid):
+        sender = Sender(SERVER_URI, format='json')
+        
+        with HTTMock(mock_collections_post_201):
+            r = sender.send(collection_valid)
+        
+        assert r == True
+    
+    def test_send_binary(self, collection_valid):
+        sender = Sender(SERVER_URI, format='binary')
         
         with HTTMock(mock_collections_post_201):
             r = sender.send(collection_valid)
