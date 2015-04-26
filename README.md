@@ -52,13 +52,11 @@ Install the following externals:
   
   Pikka Bird Server collects the metrics Pikka Bird Collector gathers.
 
-There is currently no released [Pip][pip] package (stay tuned).
+Install using [Pip][pip]:
+
+    pip install pikka-bird-collector
 
 There are currently no released server packages (stay tuned).
-
-Install dependencies using [Pip][pip]:
-
-    pip install -r requirements.txt
 
 
 ## Usage
@@ -91,6 +89,7 @@ environment variable `CI=true` (the tests are destructive to the database):
 
 Install locally using [Pip][pip] editable mode:
 
+    pip install -r requirements.txt
     pip install -e .
 
 Start a collector eternally using [Honcho][honcho], which reads `Procfile`:
