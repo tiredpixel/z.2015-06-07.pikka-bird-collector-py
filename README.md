@@ -66,15 +66,15 @@ Run [Pikka Bird Server][server].
 
 To run the collector once:
 
-    bin/pikka-bird-collector
+    pikka-bird-collector
 
 To run the collector eternally, staggering to average once per minute:
 
-    bin/pikka-bird-collector -e 60
+    pikka-bird-collector -e 60
 
 Help is at hand:
 
-    bin/pikka-bird-collector -h
+    pikka-bird-collector -h
 
 
 ## Development
