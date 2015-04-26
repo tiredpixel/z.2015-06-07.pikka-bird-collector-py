@@ -1,5 +1,6 @@
 # Pikka Bird Collector (Python)
 
+[![PyPI version](https://badge.fury.io/py/pikka-bird-collector.svg)](http://badge.fury.io/py/pikka-bird-collector)
 [![Build Status](https://travis-ci.org/tiredpixel/pikka-bird-collector-py.png?branch=master,stable)](https://travis-ci.org/tiredpixel/pikka-bird-collector-py)
 
 Pikka Bird ops monitoring tool Collector component.
