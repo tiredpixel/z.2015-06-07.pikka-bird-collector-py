@@ -3,11 +3,8 @@
 import argparse
 import logging
 import os
-import random
-import time
 
-import pikka_bird_collector.collector
-import pikka_bird_collector.sender
+import pikka_bird_collector.app
 
 
 defaults = {
@@ -66,31 +63,6 @@ logger.setLevel(args.log_level)
 logger.addHandler(ch)
 
 
-def __calculate_eternal_sleep(interval):
-    mid = round(interval / 2)
-    
-    return random.randint(interval - mid, interval + mid)
-
-
 if args.command == 'collect':
-    collector = pikka_bird_collector.collector.Collector(
-        logger=logger)
-    sender = pikka_bird_collector.sender.Sender(args.server_uri,
-        format=args.format,
-        logger=logger)
-    
-    running = True
-    
-    while running:
-        try:
-            collection = collector.collect()
-            sender.send(collection)
-            
-            if args.eternal is None:
-                running = False
-            else:
-                s = __calculate_eternal_sleep(args.eternal)
-                logger.info("WATCHING Perfectly Normal Beasts (%d s)" % s)
-                time.sleep(s)
-        except KeyboardInterrupt:
-            running = False
+    app = pikka_bird_collector.app.App(args, logger)
+    app.run()
