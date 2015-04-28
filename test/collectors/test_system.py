@@ -142,12 +142,12 @@ class TestSystem:
             percent=0.01)
     
     def test_enabled(self):
-        system = System({})
+        system = System({}, {})
         
         assert system.enabled() == True
     
     def test_collect_live(self):
-        system = System({})
+        system = System({}, {})
         service, metrics = system.collect()
         
         assert service == 'system'
@@ -228,7 +228,7 @@ class TestSystem:
                 self.mock_disk_partitions)
         monkeypatch.setattr(psutil, 'disk_usage', self.mock_disk_usage)
         
-        system = System({})
+        system = System({}, {})
         service, metrics = system.collect()
         
         assert service == 'system'
@@ -362,7 +362,7 @@ class TestSystem:
                 self.mock_disk_partitions)
         monkeypatch.setattr(psutil, 'disk_usage', self.mock_disk_usage)
         
-        system = System({})
+        system = System({}, {})
         service, metrics = system.collect()
         
         assert service == 'system'
@@ -373,7 +373,7 @@ class TestSystem:
         
         monkeypatch.setattr(os, 'getloadavg', mock_getloadavg)
         
-        system = System({})
+        system = System({}, {})
         service, metrics = system.collect()
         
         assert service == 'system'
@@ -386,7 +386,7 @@ class TestSystem:
         
         monkeypatch.setattr(os, 'statvfs', mock_statvfs)
         
-        system = System({})
+        system = System({}, {})
         service, metrics = system.collect()
         
         assert service == 'system'
@@ -399,7 +399,7 @@ class TestSystem:
         
         monkeypatch.setattr(psutil, 'disk_usage', mock_disk_usage)
         
-        system = System({})
+        system = System({}, {})
         service, metrics = system.collect()
         
         assert service == 'system'

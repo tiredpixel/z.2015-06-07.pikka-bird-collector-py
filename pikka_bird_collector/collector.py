@@ -12,8 +12,10 @@ import pikka_bird_collector
 COLLECTORS = [
    'system']
 
+COLLECTORS_MODULE_P = 'pikka_bird_collector.collectors.'
+
 for c in COLLECTORS:
-   importlib.import_module('pikka_bird_collector.collectors.' + c)
+   importlib.import_module(COLLECTORS_MODULE_P + c)
 
 
 class Collector():
@@ -23,8 +25,9 @@ class Collector():
         kernel version, are passed to each collector.
         """
     
-    def __init__(self, logger=None):
-        self.logger = logger or logging.getLogger()
+    def __init__(self, settings=None, logger=None):
+        self.settings = settings or {}
+        self.logger   = logger or logging.getLogger()
         
         self.__set_environment()
     
@@ -44,12 +47,13 @@ class Collector():
         collecting_at = datetime.datetime.utcnow()
         self.logger.info("COLLECTING")
         
-        for collector_klass in self.__collector_klasses():
-            collector = collector_klass(self.environment)
-            name      = collector_klass.__name__
+        for c in COLLECTORS:
+            settings  = self.settings.get(c)
+            klass     = getattr(sys.modules[COLLECTORS_MODULE_P + c], c.title())
+            collector = klass(self.environment, settings)
             
             if collector.enabled():
-                self.logger.info("COLLECTING %s" % name)
+                self.logger.info("COLLECTING %s" % c)
                 
                 service, metrics = collector.collect()
                 
@@ -57,7 +61,7 @@ class Collector():
                 
                 self.logger.debug("METRICS %s %s" % (service, metrics))
             else:
-                self.logger.info("SKIPPED %s" % name)
+                self.logger.info("SKIPPED %s" % c)
         
         collected_at = datetime.datetime.utcnow()
         self.logger.info("COLLECTED (%d s)" % (collected_at - collecting_at).seconds)
@@ -79,9 +83,3 @@ class Collector():
                 'version': platform.version()}}
         
         self.logger.info("ENVIRONMENT %s" % self.environment)
-    
-    def __collector_klasses(self):
-        module_base = 'pikka_bird_collector.collectors.'
-        
-        return [getattr(sys.modules[module_base + c], c.title())
-            for c in COLLECTORS]

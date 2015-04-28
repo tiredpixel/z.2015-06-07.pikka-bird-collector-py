@@ -5,8 +5,9 @@ class Base():
         should conform to the interface below.
         """
     
-    def __init__(self, environment):
+    def __init__(self, environment, settings):
         self.environment = environment
+        self.settings    = settings or {}
     
     def enabled(self):
         """
