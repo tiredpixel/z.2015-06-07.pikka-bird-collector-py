@@ -82,13 +82,25 @@ where the config is something like:
 
     {
       "redis": {
-        "6379": {},
+        "6379": null,
         "6380": {
           "password": "PASSWORD"
         },
-        "6381": null
+        "6381": {}
       }
     }
+
+or maybe something like:
+
+    # config.yaml
+
+    redis:
+      6379:
+      6380:
+        password: "PASSWORD"
+      6381: {}
+
+or even a directory of files, e.g. `--config test/fixtures/config/conf.d`
 
 Help is at hand:
 
