@@ -18,8 +18,18 @@ class TestConfig:
         config = Config(TestConfig.fixture_path('config/config.json'))
         
         assert config.settings('redis') == {
-            '6379': {},
-            '6381': None,
-            '6380': {'password': 'PASSWORD'}}
+            '6379': None,
+            '6380': {'password': 'PASSWORD'},
+            '6381': {}}
+        
+        assert config.settings('mysterious-service') == {}
+    
+    def test_config_yaml(self):
+        config = Config(TestConfig.fixture_path('config/config.yaml'))
+        
+        assert config.settings('redis') == {
+            '6379': None,
+            '6380': {'password': 'PASSWORD'},
+            '6381': {}}
         
         assert config.settings('mysterious-service') == {}

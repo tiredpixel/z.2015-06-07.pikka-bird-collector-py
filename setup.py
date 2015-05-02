@@ -35,6 +35,6 @@ setup(
     install_requires = [
         'msgpack-python',
         'psutil',
-        'requests',
-    ]
+        'PyYAML',
+        'requests']
 )

@@ -1,5 +1,6 @@
 import json
 import os
+import yaml
 
 
 class Config():
@@ -8,6 +9,7 @@ class Config():
         """
     
     EXT_JSON = '.json'
+    EXT_YAML = '.yaml'
     
     def __init__(self, path):
         """
@@ -28,7 +30,9 @@ class Config():
                 : dict
                     settings, empty if none found
             """
-        return self.__settings.get(service) or {}
+        ss = self.__settings.get(service) or {}
+        
+        return { str(k): v for k, v in ss.items() }
     
     def __parse_file(self, path):
         settings = {}
@@ -43,5 +47,7 @@ class Config():
         
         if ext == self.EXT_JSON:
             settings = json.loads(data)
+        elif ext == self.EXT_YAML:
+            settings = yaml.safe_load(data)
         
         return settings
