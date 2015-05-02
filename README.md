@@ -100,6 +100,8 @@ or maybe something like:
         password: "PASSWORD"
       6381: {}
 
+or even a directory of files, e.g. `--config test/fixtures/config/conf.d`
+
 Help is at hand:
 
     pikka-bird-collector -h

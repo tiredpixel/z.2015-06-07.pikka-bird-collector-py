@@ -33,3 +33,17 @@ class TestConfig:
             '6381': {}}
         
         assert config.settings('mysterious-service') == {}
+    
+    def test_config_conf_d(self):
+        config = Config(TestConfig.fixture_path('config/conf.d'))
+        
+        assert config.settings('redis') == {
+            '6342': None,
+            '6379': None,
+            '6380': {'password': 'PASSWORD'},
+            '6381': {}}
+        
+        assert config.settings('mysql') == {
+            '3306': None}
+        
+        assert config.settings('mysterious-service') == {}
