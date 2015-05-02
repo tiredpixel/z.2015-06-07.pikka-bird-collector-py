@@ -2,7 +2,6 @@ import random
 import time
 
 import pikka_bird_collector.collector
-import pikka_bird_collector.config
 import pikka_bird_collector.sender
 
 
@@ -15,11 +14,10 @@ class App():
         self.eternal = args.eternal
         self.logger  = logger
         
-        config = pikka_bird_collector.config.Config(args.config)
-        
         self.collector = pikka_bird_collector.collector.Collector(
-            settings=config.settings,
+            config=args.config,
             logger=logger)
+        
         self.sender = pikka_bird_collector.sender.Sender(args.server_uri,
             format=args.format,
             logger=logger)

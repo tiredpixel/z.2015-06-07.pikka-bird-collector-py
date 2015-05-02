@@ -7,6 +7,7 @@ import socket
 import sys
 
 import pikka_bird_collector
+import pikka_bird_collector.config
 
 
 COLLECTORS = [
@@ -26,9 +27,16 @@ class Collector():
         kernel version, are passed to each collector.
         """
     
-    def __init__(self, settings=None, logger=None):
-        self.settings = settings or {}
-        self.logger   = logger or logging.getLogger()
+    def __init__(self, config=None, logger=None):
+        """
+            PARAMETERS:
+                path : string
+                    filename of config to parse
+                logger : logger
+                    logger
+            """
+        self.config = pikka_bird_collector.config.Config(config)
+        self.logger = logger or logging.getLogger()
         
         self.__set_environment()
     
@@ -52,7 +60,7 @@ class Collector():
             klass = getattr(sys.modules[COLLECTORS_MODULE_P + c], c.title())
             
             service   = klass.service()
-            collector = klass(self.environment, self.settings.get(service))
+            collector = klass(self.environment, self.config.settings(service))
             
             if collector.enabled():
                 self.logger.info("COLLECTING %s" % service)
