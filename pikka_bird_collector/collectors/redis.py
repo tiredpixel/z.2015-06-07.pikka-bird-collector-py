@@ -87,11 +87,14 @@ class Redis(Base):
     def __collect_port(self, port, settings):
         metrics = self.__command_parse_output(port, settings, 'INFO')
         
-        ms = self.__command_parse_output(port, settings, 'CLUSTER INFO')
+        if len(metrics) == 0:
+            return {} # failure, denoted by single +{}+ under port
         
-        if len(ms):
+        metrics_c = self.__command_parse_output(port, settings, 'CLUSTER INFO')
+        
+        if len(metrics_c):
             metrics['cluster'] = metrics.get('cluster') or {}
-            metrics['cluster'].update(ms)
+            metrics['cluster'].update(metrics_c)
         
         return metrics
     
