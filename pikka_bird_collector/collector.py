@@ -10,6 +10,7 @@ import pikka_bird_collector
 
 
 COLLECTORS = [
+    'redis',
     'system']
 
 COLLECTORS_MODULE_P = 'pikka_bird_collector.collectors.'
