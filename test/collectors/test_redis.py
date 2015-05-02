@@ -24,7 +24,7 @@ class TestRedis:
         f = os.path.join(os.path.dirname(__file__), '../fixtures/redis/cluster_info.txt')
         return TestRedis.read_fixture(f)
     
-    def mock_exec_command_suppress(self, command_f):
+    def mock_exec_command(self, command_f):
         command = command_f[-1]
         if command == 'CLUSTER INFO':
             return self.mock_cluster_info()
@@ -164,8 +164,7 @@ class TestRedis:
         assert redis.enabled() == False
     
     def test_collect(self, monkeypatch):
-        monkeypatch.setattr(Base, 'exec_command_suppress',
-            self.mock_exec_command_suppress)
+        monkeypatch.setattr(Base, 'exec_command', self.mock_exec_command)
         
         redis = Redis({}, { 6379: {} })
         metrics = redis.collect()

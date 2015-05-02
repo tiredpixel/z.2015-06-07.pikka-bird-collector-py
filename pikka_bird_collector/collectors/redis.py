@@ -97,5 +97,5 @@ class Redis(Base):
     
     def __command_parse_output(self, port, settings, command):
         command_f = Redis.command_redis(port, settings, command)
-        output = Base.exec_command_suppress(command_f)
+        output = Base.exec_command(command_f)
         return Redis.parse_output(output)
