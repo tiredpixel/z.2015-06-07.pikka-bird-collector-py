@@ -10,7 +10,7 @@ import pikka_bird_collector
 
 
 COLLECTORS = [
-   'system']
+    'system']
 
 COLLECTORS_MODULE_P = 'pikka_bird_collector.collectors.'
 
@@ -48,20 +48,19 @@ class Collector():
         self.logger.info("COLLECTING")
         
         for c in COLLECTORS:
-            settings  = self.settings.get(c)
-            klass     = getattr(sys.modules[COLLECTORS_MODULE_P + c], c.title())
-            collector = klass(self.environment, settings)
+            klass = getattr(sys.modules[COLLECTORS_MODULE_P + c], c.title())
+            
+            service   = klass.service()
+            collector = klass(self.environment, self.settings.get(service))
             
             if collector.enabled():
-                self.logger.info("COLLECTING %s" % c)
+                self.logger.info("COLLECTING %s" % service)
                 
-                service, metrics = collector.collect()
+                reports[service] = collector.collect()
                 
-                reports[service] = metrics
-                
-                self.logger.debug("METRICS %s %s" % (service, metrics))
+                self.logger.debug("METRICS %s %s" % (service, reports[service]))
             else:
-                self.logger.info("SKIPPED %s" % c)
+                self.logger.debug("SKIPPED %s" % service)
         
         collected_at = datetime.datetime.utcnow()
         self.logger.info("COLLECTED (%d s)" % (collected_at - collecting_at).seconds)

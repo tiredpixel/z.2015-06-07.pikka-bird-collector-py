@@ -148,9 +148,7 @@ class TestSystem:
     
     def test_collect_live(self):
         system = System({}, {})
-        service, metrics = system.collect()
-        
-        assert service == 'system'
+        metrics = system.collect()
         
         metrics_load = metrics['load']
         
@@ -229,9 +227,7 @@ class TestSystem:
         monkeypatch.setattr(psutil, 'disk_usage', self.mock_disk_usage)
         
         system = System({}, {})
-        service, metrics = system.collect()
-        
-        assert service == 'system'
+        metrics = system.collect()
         
         # round floats (like beach balls)
         
@@ -363,9 +359,7 @@ class TestSystem:
         monkeypatch.setattr(psutil, 'disk_usage', self.mock_disk_usage)
         
         system = System({}, {})
-        service, metrics = system.collect()
-        
-        assert service == 'system'
+        metrics = system.collect()
     
     def test_collect_load_oserror(self, monkeypatch):
         def mock_getloadavg():
@@ -374,9 +368,7 @@ class TestSystem:
         monkeypatch.setattr(os, 'getloadavg', mock_getloadavg)
         
         system = System({}, {})
-        service, metrics = system.collect()
-        
-        assert service == 'system'
+        metrics = system.collect()
         
         assert metrics['load'] == {}
     
@@ -387,9 +379,7 @@ class TestSystem:
         monkeypatch.setattr(os, 'statvfs', mock_statvfs)
         
         system = System({}, {})
-        service, metrics = system.collect()
-        
-        assert service == 'system'
+        metrics = system.collect()
         
         assert metrics['disk']['/'] == {}
     
@@ -400,8 +390,6 @@ class TestSystem:
         monkeypatch.setattr(psutil, 'disk_usage', mock_disk_usage)
         
         system = System({}, {})
-        service, metrics = system.collect()
-        
-        assert service == 'system'
+        metrics = system.collect()
         
         assert metrics['disk']['/'] == {}

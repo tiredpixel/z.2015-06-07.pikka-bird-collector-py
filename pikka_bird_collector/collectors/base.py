@@ -9,6 +9,13 @@ class Base():
         self.environment = environment
         self.settings    = settings or {}
     
+    @classmethod
+    def service(cls):
+        """
+            Name of service the collector defines.
+            """
+        return cls.__name__.lower()
+    
     def enabled(self):
         """
             Whether this Collector is enabled for this run. Here, collectors can
@@ -19,7 +26,7 @@ class Base():
                 : boolean
                     whether this collector is enabled for this run
             """
-        pass
+        return True
     
     def collect(self):
         """
@@ -31,7 +38,8 @@ class Base():
             each set of metrics nested under the port).
             
             RETURN:
-                : tuple (string, dict)
-                    (service, data)
+                : dict
+                    metrics data, the structure of which the collector is free
+                    to define for itself
             """
-        pass
+        return {}
