@@ -90,7 +90,7 @@ class Redis(Base):
         ms = self.__command_parse_output(port, settings, 'CLUSTER INFO')
         
         if len(ms):
-            metrics['cluster'] = metrics['cluster'] or {}
+            metrics['cluster'] = metrics.get('cluster') or {}
             metrics['cluster'].update(ms)
         
         return metrics
