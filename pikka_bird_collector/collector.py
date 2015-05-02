@@ -7,13 +7,17 @@ import socket
 import sys
 
 import pikka_bird_collector
+import pikka_bird_collector.config
 
 
 COLLECTORS = [
-   'system']
+    'redis',
+    'system']
+
+COLLECTORS_MODULE_P = 'pikka_bird_collector.collectors.'
 
 for c in COLLECTORS:
-   importlib.import_module('pikka_bird_collector.collectors.' + c)
+   importlib.import_module(COLLECTORS_MODULE_P + c)
 
 
 class Collector():
@@ -23,7 +27,15 @@ class Collector():
         kernel version, are passed to each collector.
         """
     
-    def __init__(self, logger=None):
+    def __init__(self, config=None, logger=None):
+        """
+            PARAMETERS:
+                path : string
+                    filename of config to parse
+                logger : logger
+                    logger
+            """
+        self.config = pikka_bird_collector.config.Config(config)
         self.logger = logger or logging.getLogger()
         
         self.__set_environment()
@@ -44,20 +56,20 @@ class Collector():
         collecting_at = datetime.datetime.utcnow()
         self.logger.info("COLLECTING")
         
-        for collector_klass in self.__collector_klasses():
-            collector = collector_klass(self.environment)
-            name      = collector_klass.__name__
+        for c in COLLECTORS:
+            klass = getattr(sys.modules[COLLECTORS_MODULE_P + c], c.title())
+            
+            service   = klass.service()
+            collector = klass(self.environment, self.config.settings(service))
             
             if collector.enabled():
-                self.logger.info("COLLECTING %s" % name)
+                self.logger.info("COLLECTING %s" % service)
                 
-                service, metrics = collector.collect()
+                reports[service] = collector.collect()
                 
-                reports[service] = metrics
-                
-                self.logger.debug("METRICS %s %s" % (service, metrics))
+                self.logger.debug("METRICS %s %s" % (service, reports[service]))
             else:
-                self.logger.info("SKIPPED %s" % name)
+                self.logger.debug("SKIPPED %s" % service)
         
         collected_at = datetime.datetime.utcnow()
         self.logger.info("COLLECTED (%d s)" % (collected_at - collecting_at).seconds)
@@ -79,9 +91,3 @@ class Collector():
                 'version': platform.version()}}
         
         self.logger.info("ENVIRONMENT %s" % self.environment)
-    
-    def __collector_klasses(self):
-        module_base = 'pikka_bird_collector.collectors.'
-        
-        return [getattr(sys.modules[module_base + c], c.title())
-            for c in COLLECTORS]

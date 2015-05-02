@@ -1,7 +1,7 @@
 import os
 import psutil
 
-from pikka_bird_collector.collectors.base import Base
+from .base import Base
 
 
 class System(Base):
@@ -21,15 +21,12 @@ class System(Base):
     # time to sample CPUs (s)
     CPU_SAMPLE_S = 0.1
     
-    def enabled(self):
-        return True # always attempt to collect system metrics
-    
     def collect(self):
-        return ('system', {
+        return {
             'load':   self.__load(),
             'cpu':    self.__cpu(),
             'memory': self.__memory(),
-            'disk':   self.__disk()})
+            'disk':   self.__disk()}
     
     def __load(self):
         try:

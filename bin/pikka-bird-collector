@@ -33,6 +33,10 @@ parser.add_argument('-s', '--server-uri',
     default=defaults['server_uri'],
     help="server URI (default: %(server_uri)s))" % defaults)
 
+parser.add_argument('--config',
+    metavar='CONFIG',
+    help="config")
+
 parser.add_argument('--log-level',
     metavar='LOG_LEVEL',
     choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],

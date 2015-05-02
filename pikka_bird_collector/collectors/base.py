@@ -1,3 +1,6 @@
+import subprocess
+
+
 class Base():
     """
         Base class, from which others inherit. Collector classes are passed the
@@ -5,8 +8,40 @@ class Base():
         should conform to the interface below.
         """
     
-    def __init__(self, environment):
+    @staticmethod
+    def exec_command(command):
+        """
+            Execute a system command using subprocess, returning the output. For
+            any reasonable error, such as exit codes, the error is suppressed
+            and +None+ is returned.
+            
+            PARAMETERS:
+                command : list
+                    command in list syntax, e.g.
+                        ['redis-cli', '-p', '6379', 'INFO']
+            RETURN:
+                : string
+                    output of command including both STDOUT and STDERR
+                : None
+                    command failed for some reason
+            """
+        try:
+            return subprocess.check_output(command,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True)
+        except (IOError, OSError, subprocess.CalledProcessError):
+            return
+    
+    @classmethod
+    def service(cls):
+        """
+            Name of service the collector defines.
+            """
+        return cls.__name__.lower()
+    
+    def __init__(self, environment, settings):
         self.environment = environment
+        self.settings    = settings or {}
     
     def enabled(self):
         """
@@ -18,7 +53,7 @@ class Base():
                 : boolean
                     whether this collector is enabled for this run
             """
-        pass
+        return True
     
     def collect(self):
         """
@@ -30,7 +65,8 @@ class Base():
             each set of metrics nested under the port).
             
             RETURN:
-                : tuple (string, dict)
-                    (service, data)
+                : dict
+                    metrics data, the structure of which the collector is free
+                    to define for itself
             """
-        pass
+        return {}

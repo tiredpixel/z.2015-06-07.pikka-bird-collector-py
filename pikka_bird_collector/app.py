@@ -15,7 +15,9 @@ class App():
         self.logger  = logger
         
         self.collector = pikka_bird_collector.collector.Collector(
+            config=args.config,
             logger=logger)
+        
         self.sender = pikka_bird_collector.sender.Sender(args.server_uri,
             format=args.format,
             logger=logger)

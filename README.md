@@ -72,6 +72,24 @@ To run the collector eternally, staggering to average once per minute:
 
     pikka-bird-collector -e 60
 
+To load a services config, activating relevant collectors with settings:
+
+    pikka-bird-collector --config test/fixtures/config/config.json
+
+where the config is something like:
+
+    # config.json
+
+    {
+      "redis": {
+        "6379": {},
+        "6380": {
+          "password": "PASSWORD"
+        },
+        "6381": null
+      }
+    }
+
 Help is at hand:
 
     pikka-bird-collector -h
