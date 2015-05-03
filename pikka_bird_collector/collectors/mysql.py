@@ -26,6 +26,12 @@ class Mysql(BasePortCommand):
     
     RE_SETTING = re.compile(r'(?P<k>\w+)\t(?P<v>.*)')
     
+    PARSE_BOOLS = {
+        'ON':  True,
+        'OFF': False,
+        'YES': True,
+        'NO':  False}
+    
     @staticmethod
     def command_tool(port, settings, command):
         settings = settings or {}
@@ -46,7 +52,7 @@ class Mysql(BasePortCommand):
         return c
     
     @staticmethod
-    def parse_output(output):
+    def parse_output(output, parse_opts={}):
         if output is None:
             return {}
         
@@ -56,12 +62,23 @@ class Mysql(BasePortCommand):
             m_setting = Mysql.RE_SETTING.match(row)
             if m_setting:
                 k = Base.parse_str_setting_key(m_setting.group('k'))
-                v = Base.parse_str_setting_value(m_setting.group('v'))
+                v = Mysql.__parse_str_setting_value(m_setting.group('v'),
+                    parse_opts.get('convert_bool'))
                 ds[k] = v
         
         return ds
     
     def collect_port(self, port, settings):
-        metrics = self.command_parse_output(port, settings, 'SHOW VARIABLES')
+        metrics = self.command_parse_output(port, settings, 'SHOW VARIABLES',
+            {'convert_bool': True})
         
         return metrics
+    
+    @staticmethod
+    def __parse_str_setting_value(value, convert_bool):
+        v = Base.parse_str_setting_value(value)
+        
+        if convert_bool and v in Mysql.PARSE_BOOLS:
+            v = Mysql.PARSE_BOOLS[v]
+        
+        return v

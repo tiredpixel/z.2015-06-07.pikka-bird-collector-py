@@ -51,7 +51,7 @@ class Redis(BasePortCommand):
         return c
     
     @staticmethod
-    def parse_output(output):
+    def parse_output(output, parse_opts={}):
         if output is None:
             return {}
         

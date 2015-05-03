@@ -36,7 +36,7 @@ class BasePortCommand(Base):
         pass # IMPLEMENT
     
     @staticmethod
-    def parse_output(output):
+    def parse_output(output, parse_opts={}):
         """
             Parse output from external command-line tool, returning metrics.
             
@@ -44,7 +44,8 @@ class BasePortCommand(Base):
                 output : string
                     output to parse; note 'universal newlines' is used in
                     subprocess, guaranteeing +\n+ endings
-            
+                parse_opts : dict
+                    optional parse opts
             RETURN:
                 : dict
                     parsed metrics
@@ -91,11 +92,11 @@ class BasePortCommand(Base):
             return
     
     @classmethod
-    def command_parse_output(cls, port, settings, command):
+    def command_parse_output(cls, port, settings, command, parse_opts={}):
         command_f = cls.command_tool(port, settings, command)
         output    = BasePortCommand.exec_command(command_f)
         
-        return cls.parse_output(output)
+        return cls.parse_output(output, parse_opts)
     
     def collect(self):
         metrics = {}
