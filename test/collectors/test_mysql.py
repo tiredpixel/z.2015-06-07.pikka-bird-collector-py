@@ -1,7 +1,7 @@
 import os
 
 from pikka_bird_collector.collectors.mysql import Mysql
-from pikka_bird_collector.collectors.base import Base
+from pikka_bird_collector.collectors.base_port_command import BasePortCommand
 
 
 class TestMysql:
@@ -19,21 +19,21 @@ class TestMysql:
     def mock_exec_command(self, command_f):
         return self.mock_show_variables()
     
-    def test_command_mysql(self):
-        assert (Mysql.command_mysql(3306, {}, 'SHOW VARIABLES') ==
+    def test_command_tool(self):
+        assert (Mysql.command_tool(3306, {}, 'SHOW VARIABLES') ==
             ['mysql', '--host', '127.0.0.1', '--port', 3306,
                 '--execute', 'SHOW VARIABLES',
                 '--batch', '--raw', '--skip-column-names'])
     
-    def test_command_mysql_user(self):
-        assert (Mysql.command_mysql(3306, { 'user': "USER" }, 'SHOW VARIABLES') ==
+    def test_command_tool_user(self):
+        assert (Mysql.command_tool(3306, { 'user': "USER" }, 'SHOW VARIABLES') ==
             ['mysql', '--host', '127.0.0.1', '--port', 3306,
                 '--execute', 'SHOW VARIABLES',
                 '--batch', '--raw', '--skip-column-names',
                 '--user=USER'])
     
-    def test_command_mysql_password(self):
-        assert (Mysql.command_mysql(3306, { 'password': 'PASS"WORD' }, 'SHOW VARIABLES') ==
+    def test_command_tool_password(self):
+        assert (Mysql.command_tool(3306, { 'password': 'PASS"WORD' }, 'SHOW VARIABLES') ==
             ['mysql', '--host', '127.0.0.1', '--port', 3306,
                 '--execute', 'SHOW VARIABLES',
                 '--batch', '--raw', '--skip-column-names',
@@ -505,7 +505,7 @@ class TestMysql:
         assert mysql.enabled() == False
     
     def test_collect(self, monkeypatch):
-        monkeypatch.setattr(Base, 'exec_command', self.mock_exec_command)
+        monkeypatch.setattr(BasePortCommand, 'exec_command', self.mock_exec_command)
         
         mysql = Mysql({}, { 3306: {} })
         metrics = mysql.collect()

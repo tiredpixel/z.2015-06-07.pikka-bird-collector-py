@@ -1,9 +1,9 @@
 import re
 
-from .base import Base
+from .base_port_command import BasePortCommand
 
 
-class Redis(Base):
+class Redis(BasePortCommand):
     """
         Collector for Redis (http://redis.io/).
         
@@ -39,7 +39,7 @@ class Redis(Base):
     RE_SETTING = re.compile(r'(?P<k>\w+):(?P<v>.*)')
     
     @staticmethod
-    def command_redis(port, settings, command):
+    def command_tool(port, settings, command):
         settings = settings or {}
         
         c = ['redis-cli', '-p', port]
@@ -75,30 +75,16 @@ class Redis(Base):
         
         return ds
     
-    def enabled(self):
-        return len(self.settings) >= 1
-    
-    def collect(self):
-        metrics = {}
-        
-        return { port: self.__collect_port(port, settings)
-            for port, settings in self.settings.items() }
-    
-    def __collect_port(self, port, settings):
-        metrics = self.__command_parse_output(port, settings, 'INFO')
+    def collect_port(self, port, settings):
+        metrics = self.command_parse_output(port, settings, 'INFO')
         
         if len(metrics) == 0:
             return {} # failure, denoted by single +{}+ under port
         
-        metrics_c = self.__command_parse_output(port, settings, 'CLUSTER INFO')
+        metrics_c = self.command_parse_output(port, settings, 'CLUSTER INFO')
         
         if len(metrics_c):
             metrics['cluster'] = metrics.get('cluster') or {}
             metrics['cluster'].update(metrics_c)
         
         return metrics
-    
-    def __command_parse_output(self, port, settings, command):
-        command_f = Redis.command_redis(port, settings, command)
-        output = Base.exec_command(command_f)
-        return Redis.parse_output(output)

@@ -1,7 +1,7 @@
 import os
 
 from pikka_bird_collector.collectors.redis import Redis
-from pikka_bird_collector.collectors.base import Base
+from pikka_bird_collector.collectors.base_port_command import BasePortCommand
 
 
 class TestRedis:
@@ -31,12 +31,12 @@ class TestRedis:
         elif command == 'INFO':
             return self.mock_info()
     
-    def test_command_redis(self):
-        assert (Redis.command_redis(6379, {}, 'INFO') ==
+    def test_command_tool(self):
+        assert (Redis.command_tool(6379, {}, 'INFO') ==
             ['redis-cli', '-p', 6379, 'INFO'])
     
-    def test_command_redis_password(self):
-        assert (Redis.command_redis(6380, { 'password': "PW" }, 'DBSIZE') ==
+    def test_command_tool_password(self):
+        assert (Redis.command_tool(6380, { 'password': "PW" }, 'DBSIZE') ==
             ['redis-cli', '-p', 6380, '-a', 'PW', 'DBSIZE'])
     
     def test_parse_output_none(self):
@@ -164,7 +164,7 @@ class TestRedis:
         assert redis.enabled() == False
     
     def test_collect(self, monkeypatch):
-        monkeypatch.setattr(Base, 'exec_command', self.mock_exec_command)
+        monkeypatch.setattr(BasePortCommand, 'exec_command', self.mock_exec_command)
         
         redis = Redis({}, { 6379: {} })
         metrics = redis.collect()

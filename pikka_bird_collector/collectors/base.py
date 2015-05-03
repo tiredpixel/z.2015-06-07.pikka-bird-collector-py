@@ -1,36 +1,12 @@
-import subprocess
-
-
 class Base():
     """
         Base class, from which others inherit. Collector classes are passed the
         environment, in case they need to take OS-specific logic, etc. Classes
         should conform to the interface below.
+        
+        IMPLEMENT:
+            collect()
         """
-    
-    @staticmethod
-    def exec_command(command):
-        """
-            Execute a system command using subprocess, returning the output. For
-            any reasonable error, such as exit codes, the error is suppressed
-            and +None+ is returned.
-            
-            PARAMETERS:
-                command : list
-                    command in list syntax, e.g.
-                        ['redis-cli', '-p', '6379', 'INFO']
-            RETURN:
-                : string
-                    output of command including both STDOUT and STDERR
-                : None
-                    command failed for some reason
-            """
-        try:
-            return subprocess.check_output(command,
-                stderr=subprocess.STDOUT,
-                universal_newlines=True)
-        except (IOError, OSError, subprocess.CalledProcessError):
-            return
     
     @classmethod
     def service(cls):
@@ -53,7 +29,7 @@ class Base():
                 : boolean
                     whether this collector is enabled for this run
             """
-        return True
+        return len(self.settings) >= 1
     
     def collect(self):
         """
@@ -69,4 +45,4 @@ class Base():
                     metrics data, the structure of which the collector is free
                     to define for itself
             """
-        return {}
+        pass # IMPLEMENT

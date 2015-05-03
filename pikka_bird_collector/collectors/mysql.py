@@ -1,9 +1,9 @@
 import re
 
-from .base import Base
+from .base_port_command import BasePortCommand
 
 
-class Mysql(Base):
+class Mysql(BasePortCommand):
     """
         Collector for MySQL (http://redis.io/).
         
@@ -27,7 +27,7 @@ class Mysql(Base):
     RE_SETTING = re.compile(r'(?P<k>\w+)\t(?P<v>.*)')
     
     @staticmethod
-    def command_mysql(port, settings, command):
+    def command_tool(port, settings, command):
         settings = settings or {}
         
         c = ['mysql',
@@ -61,21 +61,7 @@ class Mysql(Base):
         
         return ds
     
-    def enabled(self):
-        return len(self.settings) >= 1
-    
-    def collect(self):
-        metrics = {}
-        
-        return { port: self.__collect_port(port, settings)
-            for port, settings in self.settings.items() }
-    
-    def __collect_port(self, port, settings):
-        metrics = self.__command_parse_output(port, settings, 'SHOW VARIABLES')
+    def collect_port(self, port, settings):
+        metrics = self.command_parse_output(port, settings, 'SHOW VARIABLES')
         
         return metrics
-    
-    def __command_parse_output(self, port, settings, command):
-        command_f = Mysql.command_mysql(port, settings, command)
-        output = Base.exec_command(command_f)
-        return Mysql.parse_output(output)

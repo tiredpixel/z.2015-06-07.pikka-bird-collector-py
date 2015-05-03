@@ -13,6 +13,17 @@ class System(Base):
         knowledge of which metrics to subtract from which, etc. Many metrics are
         provided in both their raw form (containing unit within key) and as a
         ratio (`_/`), which are used in preference to percentages.
+        
+        The collector is always enabled.
+        
+        DEPENDENCIES:
+            (none)
+        
+        SETTINGS:
+            (minimal):
+                (none)
+            (supported):
+                (none)
         """
     
     # accuracy to use for ratios (decimal places)
@@ -20,6 +31,9 @@ class System(Base):
     
     # time to sample CPUs (s)
     CPU_SAMPLE_S = 0.1
+    
+    def enabled(self):
+        return True
     
     def collect(self):
         return {
