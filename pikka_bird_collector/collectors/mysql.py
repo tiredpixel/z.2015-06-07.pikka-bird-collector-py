@@ -71,13 +71,19 @@ class Mysql(BasePortCommand):
     def collect_port(self, port, settings):
         metrics = {}
         
-        ms = self.command_parse_output(port, settings, 'SHOW VARIABLES', {
-            'convert_bool': True})
+        ms = self.command_parse_output(port, settings,
+            'SHOW VARIABLES', { 'convert_bool': True })
         
         if len(ms) == 0:
             return {} # failure, denoted by single +{}+ under port
         
         metrics['variables'] = ms
+        
+        ms = self.command_parse_output(port, settings,
+            'SHOW /*!50002 GLOBAL */ STATUS', { 'convert_bool': True })
+        
+        if len(ms):
+            metrics['status'] = ms
         
         return metrics
     
