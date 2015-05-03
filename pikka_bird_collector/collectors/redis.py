@@ -27,13 +27,17 @@ class Redis(BasePortCommand):
             (supported):
                 {
                     6379: {
-                        'password': "PASSWORD"}}
+                        'password':     "PASSWORD",
+                        'cluster_info': False}}
         
         +AUTH+ support is provided via the settings.
         
         +CLUSTER INFO+ is merged into +INFO+, if the command succeeds, providing
         built-in support for Redis Cluster (3.0+).
         """
+    
+    COLLECT_SETTING_DEFAULTS = {
+        'cluster_info': True}
     
     CMD_CLUSTER_INFO = 'CLUSTER INFO'
     CMD_INFO         = 'INFO'
@@ -89,10 +93,11 @@ class Redis(BasePortCommand):
         else:
             return metrics # service down; give up
         
-        o = self.command_output(port, settings, self.CMD_CLUSTER_INFO)
-        ms = self.parse_output(o)
-        
-        if len(ms):
-            metrics['cluster_info'] = ms
+        if self.collect_setting('cluster_info', settings):
+            o = self.command_output(port, settings, self.CMD_CLUSTER_INFO)
+            ms = self.parse_output(o)
+            
+            if len(ms):
+                metrics['cluster_info'] = ms
         
         return metrics

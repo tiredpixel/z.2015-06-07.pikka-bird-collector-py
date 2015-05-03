@@ -20,9 +20,13 @@ class Mysql(BasePortCommand):
             (supported):
                 {
                     3306: {
-                        'user': "USER",
-                        'password': "PASSWORD"}}
+                        'user':      "USER",
+                        'password':  "PASSWORD",
+                        'variables': False}}
         """
+    
+    COLLECT_SETTING_DEFAULTS = {
+        'variables': True}
     
     CMD_SHOW_STATUS    = 'SHOW /*!50002 GLOBAL */ STATUS'
     CMD_SHOW_VARIABLES = 'SHOW VARIABLES'
@@ -82,11 +86,12 @@ class Mysql(BasePortCommand):
         else:
             return metrics # service down; give up
         
-        o = self.command_output(port, settings, self.CMD_SHOW_VARIABLES)
-        ms = self.parse_output(o, convert_bool=True)
-        
-        if len(ms):
-            metrics['variables'] = ms
+        if self.collect_setting('variables', settings):
+            o = self.command_output(port, settings, self.CMD_SHOW_VARIABLES)
+            ms = self.parse_output(o, convert_bool=True)
+            
+            if len(ms):
+                metrics['variables'] = ms
         
         return metrics
     

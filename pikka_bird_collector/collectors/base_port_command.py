@@ -13,6 +13,8 @@ class BasePortCommand(Base):
             collect_port()
         """
     
+    COLLECT_SETTING_DEFAULTS = {}
+    
     @staticmethod
     def command_tool(port, settings, command):
         """
@@ -77,6 +79,15 @@ class BasePortCommand(Base):
     def command_output(cls, port, settings, command):
         command_f = cls.command_tool(port, settings, command)
         return BasePortCommand.exec_command(command_f)
+    
+    @classmethod
+    def collect_setting(cls, setting, settings):
+        settings = settings or {}
+        
+        if setting in settings:
+            return settings[setting]
+        else:
+            return cls.COLLECT_SETTING_DEFAULTS[setting]
     
     def collect(self):
         metrics = {}

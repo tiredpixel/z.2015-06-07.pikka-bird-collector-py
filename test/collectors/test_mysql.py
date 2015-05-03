@@ -869,7 +869,8 @@ class TestMysql:
         assert mysql.enabled() == False
     
     def test_collect(self, monkeypatch):
-        monkeypatch.setattr(BasePortCommand, 'exec_command', self.mock_exec_command)
+        monkeypatch.setattr(BasePortCommand, 'exec_command',
+            self.mock_exec_command)
         
         mysql = Mysql({}, { 3306: {} })
         metrics = mysql.collect()
@@ -878,3 +879,14 @@ class TestMysql:
             3306: {
                 'status':    self.mock_collect_status(),
                 'variables': self.mock_collect_variables()}}
+    
+    def test_collect_no_variables(self, monkeypatch):
+        monkeypatch.setattr(BasePortCommand, 'exec_command',
+            self.mock_exec_command)
+        
+        mysql = Mysql({}, { 3306: { 'variables': False } })
+        metrics = mysql.collect()
+        
+        assert metrics == {
+            3306: {
+                'status': self.mock_collect_status()}}

@@ -185,3 +185,13 @@ class TestRedis:
             6379: {
                 'info':         self.mock_collect_info(),
                 'cluster_info': self.mock_collect_cluster_info()}}
+    
+    def test_collect_no_cluster_info(self, monkeypatch):
+        monkeypatch.setattr(BasePortCommand, 'exec_command', self.mock_exec_command)
+        
+        redis = Redis({}, { 6379: { 'cluster_info': False } })
+        metrics = redis.collect()
+        
+        assert metrics == {
+            6379: {
+                'info': self.mock_collect_info()}}
