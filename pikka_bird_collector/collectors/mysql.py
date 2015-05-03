@@ -24,6 +24,9 @@ class Mysql(BasePortCommand):
                         'password': "PASSWORD"}}
         """
     
+    CMD_SHOW_STATUS    = 'SHOW /*!50002 GLOBAL */ STATUS'
+    CMD_SHOW_VARIABLES = 'SHOW VARIABLES'
+    
     RE_SETTING = re.compile(r'(?P<k>\w+)\t(?P<v>.*)')
     
     PARSE_BOOLS = {
@@ -52,7 +55,7 @@ class Mysql(BasePortCommand):
         return c
     
     @staticmethod
-    def parse_output(output, parse_opts={}):
+    def parse_output(output, convert_bool=False):
         if output is None:
             return {}
         
@@ -63,7 +66,7 @@ class Mysql(BasePortCommand):
             if m_setting:
                 k = Base.parse_str_setting_key(m_setting.group('k'))
                 v = Mysql.__parse_str_setting_value(m_setting.group('v'),
-                    parse_opts.get('convert_bool'))
+                    convert_bool)
                 ds[k] = v
         
         return ds
@@ -71,19 +74,19 @@ class Mysql(BasePortCommand):
     def collect_port(self, port, settings):
         metrics = {}
         
-        ms = self.command_parse_output(port, settings,
-            'SHOW VARIABLES', { 'convert_bool': True })
-        
-        if len(ms) == 0:
-            return {} # failure, denoted by single +{}+ under port
-        
-        metrics['variables'] = ms
-        
-        ms = self.command_parse_output(port, settings,
-            'SHOW /*!50002 GLOBAL */ STATUS', { 'convert_bool': True })
+        o = self.command_output(port, settings, self.CMD_SHOW_STATUS)
+        ms = self.parse_output(o, convert_bool=True)
         
         if len(ms):
             metrics['status'] = ms
+        else:
+            return metrics # service down; give up
+        
+        o = self.command_output(port, settings, self.CMD_SHOW_VARIABLES)
+        ms = self.parse_output(o, convert_bool=True)
+        
+        if len(ms):
+            metrics['variables'] = ms
         
         return metrics
     

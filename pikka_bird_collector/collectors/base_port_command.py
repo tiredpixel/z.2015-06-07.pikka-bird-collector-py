@@ -10,7 +10,6 @@ class BasePortCommand(Base):
         
         IMPLEMENT:
             command_tool()
-            parse_output()
             collect_port()
         """
     
@@ -32,23 +31,6 @@ class BasePortCommand(Base):
                 : list
                     command in list synax, e.g.
                         ['redis-cli', '-p', '6379', 'INFO']
-            """
-        pass # IMPLEMENT
-    
-    @staticmethod
-    def parse_output(output, parse_opts={}):
-        """
-            Parse output from external command-line tool, returning metrics.
-            
-            PARAMETERS:
-                output : string
-                    output to parse; note 'universal newlines' is used in
-                    subprocess, guaranteeing +\n+ endings
-                parse_opts : dict
-                    optional parse opts
-            RETURN:
-                : dict
-                    parsed metrics
             """
         pass # IMPLEMENT
     
@@ -92,11 +74,9 @@ class BasePortCommand(Base):
             return
     
     @classmethod
-    def command_parse_output(cls, port, settings, command, parse_opts={}):
+    def command_output(cls, port, settings, command):
         command_f = cls.command_tool(port, settings, command)
-        output    = BasePortCommand.exec_command(command_f)
-        
-        return cls.parse_output(output, parse_opts)
+        return BasePortCommand.exec_command(command_f)
     
     def collect(self):
         metrics = {}

@@ -35,6 +35,9 @@ class Redis(BasePortCommand):
         built-in support for Redis Cluster (3.0+).
         """
     
+    CMD_CLUSTER_INFO = 'CLUSTER INFO'
+    CMD_INFO         = 'INFO'
+    
     RE_SECTION = re.compile(r'# (?P<section>.+)')
     RE_SETTING = re.compile(r'(?P<k>\w+):(?P<v>.*)')
     
@@ -76,15 +79,20 @@ class Redis(BasePortCommand):
         return ds
     
     def collect_port(self, port, settings):
-        metrics = self.command_parse_output(port, settings, 'INFO')
+        metrics = {}
         
-        if len(metrics) == 0:
-            return {} # failure, denoted by single +{}+ under port
+        o = self.command_output(port, settings, self.CMD_INFO)
+        ms = self.parse_output(o)
         
-        metrics_c = self.command_parse_output(port, settings, 'CLUSTER INFO')
+        if len(ms):
+            metrics['info'] = ms
+        else:
+            return metrics # service down; give up
         
-        if len(metrics_c):
-            metrics['cluster'] = metrics.get('cluster') or {}
-            metrics['cluster'].update(metrics_c)
+        o = self.command_output(port, settings, self.CMD_CLUSTER_INFO)
+        ms = self.parse_output(o)
+        
+        if len(ms):
+            metrics['cluster_info'] = ms
         
         return metrics
