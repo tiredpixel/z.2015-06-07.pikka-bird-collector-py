@@ -1,3 +1,4 @@
+Variable_name	Value
 Aborted_clients	0
 Aborted_connects	13
 Binlog_cache_disk_use	0

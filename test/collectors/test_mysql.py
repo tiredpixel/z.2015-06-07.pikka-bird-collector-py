@@ -844,20 +844,20 @@ class TestMysql:
         assert (Mysql.command_tool(3306, {}, 'SHOW VARIABLES') ==
             ['mysql', '--host', '127.0.0.1', '--port', 3306,
                 '--execute', 'SHOW VARIABLES',
-                '--batch', '--raw', '--skip-column-names'])
+                '--batch', '--raw', '--column-names'])
     
     def test_command_tool_user(self):
         assert (Mysql.command_tool(3306, { 'user': "USER" }, 'SHOW VARIABLES') ==
             ['mysql', '--host', '127.0.0.1', '--port', 3306,
                 '--execute', 'SHOW VARIABLES',
-                '--batch', '--raw', '--skip-column-names',
+                '--batch', '--raw', '--column-names',
                 '--user=USER'])
     
     def test_command_tool_password(self):
         assert (Mysql.command_tool(3306, { 'password': 'PASS"WORD' }, 'SHOW VARIABLES') ==
             ['mysql', '--host', '127.0.0.1', '--port', 3306,
                 '--execute', 'SHOW VARIABLES',
-                '--batch', '--raw', '--skip-column-names',
+                '--batch', '--raw', '--column-names',
                 '--password=PASS"WORD'])
     
     def test_parse_output_list_none(self):

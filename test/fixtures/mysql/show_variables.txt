@@ -1,3 +1,4 @@
+Variable_name	Value
 auto_increment_increment	1
 auto_increment_offset	1
 autocommit	ON

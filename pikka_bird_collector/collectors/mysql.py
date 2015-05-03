@@ -52,7 +52,7 @@ class Mysql(BasePortCommand):
             '--execute', command,
             '--batch',
             '--raw',
-            '--skip-column-names']
+            '--column-names']
         
         if settings.get('user'):
             c.append('--user=%s' % settings['user'])
@@ -68,7 +68,9 @@ class Mysql(BasePortCommand):
         
         ds = {}
         
-        for row in output.split('\n'):
+        rows = output.split('\n')
+        
+        for row in rows[1:]:
             m_setting = Mysql.RE_SETTING.match(row)
             if m_setting:
                 k = Base.parse_str_setting_key(m_setting.group('k'))
