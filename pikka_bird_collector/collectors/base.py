@@ -46,3 +46,24 @@ class Base():
                     to define for itself
             """
         pass # IMPLEMENT
+    
+    @staticmethod
+    def parse_str_setting_key(key):
+        return key.strip().lower()
+    
+    @staticmethod
+    def parse_str_setting_value(value):
+        v = value.strip()
+        
+        if v == '':
+            return None
+        
+        try:
+            v = int(v)
+        except ValueError:
+            try:
+                v = float(v)
+            except ValueError:
+                pass
+        
+        return v

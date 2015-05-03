@@ -1,6 +1,6 @@
 import re
 
-from .base_port_command import BasePortCommand
+from .base_port_command import BasePortCommand, Base
 
 
 class Redis(BasePortCommand):
@@ -61,13 +61,13 @@ class Redis(BasePortCommand):
         for row in output.split('\n'):
             m_section = Redis.RE_SECTION.match(row)
             if m_section:
-                section = m_section.group('section').strip().lower()
+                section = Base.parse_str_setting_key(m_section.group('section'))
                 ds[section] = {}
             else:
                 m_setting = Redis.RE_SETTING.match(row)
                 if m_setting:
-                    k = m_setting.group('k').strip().lower()
-                    v = m_setting.group('v').strip()
+                    k = Base.parse_str_setting_key(m_setting.group('k'))
+                    v = Base.parse_str_setting_value(m_setting.group('v'))
                     if section is None:
                         ds[k] = v
                     else:

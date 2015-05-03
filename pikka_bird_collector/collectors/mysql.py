@@ -1,6 +1,6 @@
 import re
 
-from .base_port_command import BasePortCommand
+from .base_port_command import BasePortCommand, Base
 
 
 class Mysql(BasePortCommand):
@@ -55,8 +55,8 @@ class Mysql(BasePortCommand):
         for row in output.split('\n'):
             m_setting = Mysql.RE_SETTING.match(row)
             if m_setting:
-                k = m_setting.group('k').strip().lower()
-                v = m_setting.group('v').strip()
+                k = Base.parse_str_setting_key(m_setting.group('k'))
+                v = Base.parse_str_setting_value(m_setting.group('v'))
                 ds[k] = v
         
         return ds
