@@ -69,8 +69,15 @@ class Mysql(BasePortCommand):
         return ds
     
     def collect_port(self, port, settings):
-        metrics = self.command_parse_output(port, settings, 'SHOW VARIABLES',
-            {'convert_bool': True})
+        metrics = {}
+        
+        ms = self.command_parse_output(port, settings, 'SHOW VARIABLES', {
+            'convert_bool': True})
+        
+        if len(ms) == 0:
+            return {} # failure, denoted by single +{}+ under port
+        
+        metrics['variables'] = ms
         
         return metrics
     
