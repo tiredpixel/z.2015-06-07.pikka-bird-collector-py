@@ -20,16 +20,19 @@ class Mysql(BasePortCommand):
             (supported):
                 {
                     3306: {
-                        'user':      "USER",
-                        'password':  "PASSWORD",
-                        'variables': False}}
+                        'user':          "USER",
+                        'password':      "PASSWORD",
+                        'master_status': False,
+                        'variables':     False}}
         """
     
     COLLECT_SETTING_DEFAULTS = {
-        'variables': True}
+        'master_status': True,
+        'variables':     True}
     
-    CMD_SHOW_STATUS    = 'SHOW /*!50002 GLOBAL */ STATUS'
-    CMD_SHOW_VARIABLES = 'SHOW VARIABLES'
+    CMD_SHOW_MASTER_STATUS = 'SHOW MASTER STATUS'
+    CMD_SHOW_STATUS        = 'SHOW /*!50002 GLOBAL */ STATUS'
+    CMD_SHOW_VARIABLES     = 'SHOW VARIABLES'
     
     RE_SETTING = re.compile(r'(?P<k>\w+)\t(?P<v>.*)')
     
@@ -59,7 +62,7 @@ class Mysql(BasePortCommand):
         return c
     
     @staticmethod
-    def parse_output(output, convert_bool=False):
+    def parse_output_list(output, convert_bool=False):
         if output is None:
             return {}
         
@@ -75,20 +78,47 @@ class Mysql(BasePortCommand):
         
         return ds
     
+    @staticmethod
+    def parse_output_table(output, convert_bool=False):
+        if output is None:
+            return {}
+        
+        ds = {}
+        
+        rows   = [ r.split('\t') for r in output.split('\n') ]
+        header = [ Base.parse_str_setting_key(k) for k in rows[0] ]
+        
+        for row in rows[1:]:
+            if len(row) == len(header):
+                k = Base.parse_str_setting_key(row[0])
+                ds[k] = {}
+                for i, v in enumerate(row[1:], start=1):
+                    ds[k][header[i]] = Mysql.__parse_str_setting_value(v,
+                        convert_bool)
+        
+        return ds
+    
     def collect_port(self, port, settings):
         metrics = {}
         
         o = self.command_output(port, settings, self.CMD_SHOW_STATUS)
-        ms = self.parse_output(o, convert_bool=True)
+        ms = self.parse_output_list(o, convert_bool=True)
         
         if len(ms):
             metrics['status'] = ms
         else:
             return metrics # service down; give up
         
+        if self.collect_setting('master_status', settings):
+            o = self.command_output(port, settings, self.CMD_SHOW_MASTER_STATUS)
+            ms = self.parse_output_table(o, convert_bool=True)
+            
+            if len(ms):
+                metrics['master_status'] = ms
+        
         if self.collect_setting('variables', settings):
             o = self.command_output(port, settings, self.CMD_SHOW_VARIABLES)
-            ms = self.parse_output(o, convert_bool=True)
+            ms = self.parse_output_list(o, convert_bool=True)
             
             if len(ms):
                 metrics['variables'] = ms

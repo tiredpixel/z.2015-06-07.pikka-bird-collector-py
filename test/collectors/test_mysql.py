@@ -20,6 +20,10 @@ class TestMysql:
         f = TestMysql.fixture_path('mysql/show_status.txt')
         return TestMysql.read_fixture(f)
     
+    def mock_cmd_show_master_status(self):
+        f = TestMysql.fixture_path('mysql/show_master_status.txt')
+        return TestMysql.read_fixture(f)
+    
     def mock_cmd_show_variables(self):
         f = TestMysql.fixture_path('mysql/show_variables.txt')
         return TestMysql.read_fixture(f)
@@ -27,6 +31,8 @@ class TestMysql:
     def mock_exec_command(self, command_f):
         if Mysql.CMD_SHOW_STATUS in command_f:
             return self.mock_cmd_show_status()
+        elif Mysql.CMD_SHOW_MASTER_STATUS in command_f:
+            return self.mock_cmd_show_master_status()
         elif Mysql.CMD_SHOW_VARIABLES in command_f:
             return self.mock_cmd_show_variables()
     
@@ -374,6 +380,13 @@ class TestMysql:
             'threads_running': 1,
             'uptime': 2616535,
             'uptime_since_flush_status': 2616535}
+    
+    def mock_collect_master_status(self):
+        return {
+            'mysql-bin.000024': {
+                'position': 64795006,
+                'binlog_do_db': None,
+                'binlog_ignore_db': None}}
     
     def mock_collect_variables(self):
         return {
@@ -847,16 +860,23 @@ class TestMysql:
                 '--batch', '--raw', '--skip-column-names',
                 '--password=PASS"WORD'])
     
-    def test_parse_output_none(self):
-        assert Mysql.parse_output(None) == {}
+    def test_parse_output_list_none(self):
+        assert Mysql.parse_output_list(None) == {}
     
-    def test_parse_output_show_variables(self):
-        assert Mysql.parse_output(self.mock_cmd_show_variables(),
+    def test_parse_output_list_show_status(self):
+        assert Mysql.parse_output_list(self.mock_cmd_show_status(),
+            convert_bool=True) == self.mock_collect_status()
+    
+    def test_parse_output_list_show_variables(self):
+        assert Mysql.parse_output_list(self.mock_cmd_show_variables(),
             convert_bool=True) == self.mock_collect_variables()
     
-    def test_parse_output_show_status(self):
-        assert Mysql.parse_output(self.mock_cmd_show_status(),
-            convert_bool=True) == self.mock_collect_status()
+    def test_parse_output_table_none(self):
+        assert Mysql.parse_output_table(None) == {}
+    
+    def test_parse_output_table_show_master_status(self):
+        assert Mysql.parse_output_table(self.mock_cmd_show_master_status(),
+            convert_bool=True) == self.mock_collect_master_status()
     
     def test_enabled(self):
         mysql = Mysql({}, { 3306: {} })
@@ -877,6 +897,19 @@ class TestMysql:
         
         assert metrics == {
             3306: {
+                'status':        self.mock_collect_status(),
+                'master_status': self.mock_collect_master_status(),
+                'variables':     self.mock_collect_variables()}}
+    
+    def test_collect_no_master_status(self, monkeypatch):
+        monkeypatch.setattr(BasePortCommand, 'exec_command',
+            self.mock_exec_command)
+        
+        mysql = Mysql({}, { 3306: { 'master_status': False } })
+        metrics = mysql.collect()
+        
+        assert metrics == {
+            3306: {
                 'status':    self.mock_collect_status(),
                 'variables': self.mock_collect_variables()}}
     
@@ -889,4 +922,5 @@ class TestMysql:
         
         assert metrics == {
             3306: {
-                'status': self.mock_collect_status()}}
+                'status':        self.mock_collect_status(),
+                'master_status': self.mock_collect_master_status(),}}
