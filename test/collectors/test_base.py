@@ -1,20 +1,22 @@
-import subprocess
-import pytest
-
 from pikka_bird_collector.collectors.base import Base
 
 
 class TestBase:
     
-    COMMAND_OK          = ['echo', 'HELLO']
-    COMMAND_ERR_STATUS  = ['test', '-f', '__666__']
-    COMMAND_ERR_MISSING = ['echoooooooooo']
+    def test_parse_str_setting_key(self):
+      assert Base.parse_str_setting_key('SectionName ') == 'sectionname'
     
-    def test_exec_command(self):
-        assert Base.exec_command(self.COMMAND_OK) == 'HELLO\n'
+    def test_parse_str_setting_key_empty(self):
+      assert Base.parse_str_setting_key('') == ''
     
-    def test_exec_command_status(self):
-        assert Base.exec_command(self.COMMAND_ERR_STATUS) == None
+    def test_parse_str_setting_value(self):
+      assert Base.parse_str_setting_value('') is None
     
-    def test_exec_command_missing(self):
-        assert Base.exec_command(self.COMMAND_ERR_MISSING) == None
+    def test_parse_str_setting_value_string(self):
+      assert Base.parse_str_setting_value(' OK ') == 'OK'
+    
+    def test_parse_str_setting_value_integer(self):
+      assert Base.parse_str_setting_value('42') == 42
+    
+    def test_parse_str_setting_value_decimal(self):
+      assert Base.parse_str_setting_value('42.42') == 42.42

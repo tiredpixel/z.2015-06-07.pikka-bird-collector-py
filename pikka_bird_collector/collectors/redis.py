@@ -1,9 +1,9 @@
 import re
 
-from .base import Base
+from .base_port_command import BasePortCommand, Base
 
 
-class Redis(Base):
+class Redis(BasePortCommand):
     """
         Collector for Redis (http://redis.io/).
         
@@ -27,7 +27,8 @@ class Redis(Base):
             (supported):
                 {
                     6379: {
-                        'password': "PASSWORD"}}
+                        'password':     "PASSWORD",
+                        'cluster_info': False}}
         
         +AUTH+ support is provided via the settings.
         
@@ -35,11 +36,17 @@ class Redis(Base):
         built-in support for Redis Cluster (3.0+).
         """
     
+    COLLECT_SETTING_DEFAULTS = {
+        'cluster_info': True}
+    
+    CMD_CLUSTER_INFO = 'CLUSTER INFO'
+    CMD_INFO         = 'INFO'
+    
     RE_SECTION = re.compile(r'# (?P<section>.+)')
     RE_SETTING = re.compile(r'(?P<k>\w+):(?P<v>.*)')
     
     @staticmethod
-    def command_redis(port, settings, command):
+    def command_tool(port, settings, command):
         settings = settings or {}
         
         c = ['redis-cli', '-p', port]
@@ -51,7 +58,7 @@ class Redis(Base):
         return c
     
     @staticmethod
-    def parse_output(output):
+    def parse_output(output, parse_opts={}):
         if output is None:
             return {}
         
@@ -61,13 +68,13 @@ class Redis(Base):
         for row in output.split('\n'):
             m_section = Redis.RE_SECTION.match(row)
             if m_section:
-                section = m_section.group('section').strip().lower()
+                section = Base.parse_str_setting_key(m_section.group('section'))
                 ds[section] = {}
             else:
                 m_setting = Redis.RE_SETTING.match(row)
                 if m_setting:
-                    k = m_setting.group('k').strip().lower()
-                    v = m_setting.group('v').strip()
+                    k = Base.parse_str_setting_key(m_setting.group('k'))
+                    v = Base.parse_str_setting_value(m_setting.group('v'))
                     if section is None:
                         ds[k] = v
                     else:
@@ -75,30 +82,22 @@ class Redis(Base):
         
         return ds
     
-    def enabled(self):
-        return len(self.settings) >= 1
-    
-    def collect(self):
+    def collect_port(self, port, settings):
         metrics = {}
         
-        return { port: self.__collect_port(port, settings)
-            for port, settings in self.settings.items() }
-    
-    def __collect_port(self, port, settings):
-        metrics = self.__command_parse_output(port, settings, 'INFO')
+        o = self.command_output(port, settings, self.CMD_INFO)
+        ms = self.parse_output(o)
         
-        if len(metrics) == 0:
-            return {} # failure, denoted by single +{}+ under port
+        if len(ms):
+            metrics['info'] = ms
+        else:
+            return metrics # service down; give up
         
-        metrics_c = self.__command_parse_output(port, settings, 'CLUSTER INFO')
-        
-        if len(metrics_c):
-            metrics['cluster'] = metrics.get('cluster') or {}
-            metrics['cluster'].update(metrics_c)
+        if self.collect_setting('cluster_info', settings):
+            o = self.command_output(port, settings, self.CMD_CLUSTER_INFO)
+            ms = self.parse_output(o)
+            
+            if len(ms):
+                metrics['cluster_info'] = ms
         
         return metrics
-    
-    def __command_parse_output(self, port, settings, command):
-        command_f = Redis.command_redis(port, settings, command)
-        output = Base.exec_command(command_f)
-        return Redis.parse_output(output)

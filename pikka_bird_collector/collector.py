@@ -11,6 +11,7 @@ import pikka_bird_collector.config
 
 
 COLLECTORS = [
+    'mysql',
     'redis',
     'system']
 
