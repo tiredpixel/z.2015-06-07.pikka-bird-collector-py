@@ -23,24 +23,29 @@ class Mysql(BasePortCommand):
                         'user':          "USER",
                         'password':      "PASSWORD",
                         'master_status': False,
+                        'slave_status':  False,
                         'variables':     False}}
         """
     
     COLLECT_SETTING_DEFAULTS = {
         'master_status': True,
+        'slave_status':  True,
         'variables':     True}
     
     CMD_SHOW_MASTER_STATUS = 'SHOW MASTER STATUS'
+    CMD_SHOW_SLAVE_STATUS  = 'SHOW SLAVE STATUS'
     CMD_SHOW_STATUS        = 'SHOW /*!50002 GLOBAL */ STATUS'
     CMD_SHOW_VARIABLES     = 'SHOW VARIABLES'
     
     RE_SETTING = re.compile(r'(?P<k>\w+)\t(?P<v>.*)')
     
-    PARSE_BOOLS = {
+    PARSE_BOOLS = { # the stringy booleans are inconsistent
         'ON':  True,
         'OFF': False,
         'YES': True,
-        'NO':  False}
+        'NO':  False,
+        'Yes': True,
+        'No':  False}
     
     @staticmethod
     def command_tool(port, settings, command):
@@ -100,6 +105,25 @@ class Mysql(BasePortCommand):
         
         return ds
     
+    @staticmethod
+    def parse_output_table_tr(output, convert_bool=False):
+        if output is None:
+            return {}
+        
+        ds = {}
+        
+        rows   = [ r.split('\t') for r in output.split('\n') ]
+        header = [ Base.parse_str_setting_key(k) for k in rows[0] ]
+        
+        for row in rows[1:]:
+            if len(row) == len(header):
+                for i, v in enumerate(row):
+                    k = Base.parse_str_setting_key(header[i])
+                    ds[k] = Mysql.__parse_str_setting_value(v,
+                        convert_bool)
+        
+        return ds
+    
     def collect_port(self, port, settings):
         metrics = {}
         
@@ -117,6 +141,13 @@ class Mysql(BasePortCommand):
             
             if len(ms):
                 metrics['master_status'] = ms
+        
+        if self.collect_setting('slave_status', settings):
+            o = self.command_output(port, settings, self.CMD_SHOW_SLAVE_STATUS)
+            ms = self.parse_output_table_tr(o, convert_bool=True)
+            
+            if len(ms):
+                metrics['slave_status'] = ms
         
         if self.collect_setting('variables', settings):
             o = self.command_output(port, settings, self.CMD_SHOW_VARIABLES)

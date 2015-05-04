@@ -24,6 +24,10 @@ class TestMysql:
         f = TestMysql.fixture_path('mysql/show_master_status.txt')
         return TestMysql.read_fixture(f)
     
+    def mock_cmd_show_slave_status(self):
+        f = TestMysql.fixture_path('mysql/show_slave_status.txt')
+        return TestMysql.read_fixture(f)
+    
     def mock_cmd_show_variables(self):
         f = TestMysql.fixture_path('mysql/show_variables.txt')
         return TestMysql.read_fixture(f)
@@ -33,6 +37,8 @@ class TestMysql:
             return self.mock_cmd_show_status()
         elif Mysql.CMD_SHOW_MASTER_STATUS in command_f:
             return self.mock_cmd_show_master_status()
+        elif Mysql.CMD_SHOW_SLAVE_STATUS in command_f:
+            return self.mock_cmd_show_slave_status()
         elif Mysql.CMD_SHOW_VARIABLES in command_f:
             return self.mock_cmd_show_variables()
     
@@ -387,6 +393,49 @@ class TestMysql:
                 'position': 64795006,
                 'binlog_do_db': None,
                 'binlog_ignore_db': None}}
+    
+    def mock_collect_slave_status(self):
+        return {
+            'connect_retry': 60,
+            'exec_master_log_pos': 64707836,
+            'last_errno': 0,
+            'last_error': None,
+            'last_io_errno': 0,
+            'last_io_error': None,
+            'last_sql_errno': 0,
+            'last_sql_error': None,
+            'master_host': 'i-00000000.example.com',
+            'master_log_file': 'mysql-bin.000024',
+            'master_port': 3306,
+            'master_server_id': 1,
+            'master_ssl_allowed': False,
+            'master_ssl_ca_file': None,
+            'master_ssl_ca_path': None,
+            'master_ssl_cert': None,
+            'master_ssl_cipher': None,
+            'master_ssl_key': None,
+            'master_ssl_verify_server_cert': False,
+            'master_user': 'repl',
+            'read_master_log_pos': 64707836,
+            'relay_log_file': 'mysqld-relay-bin.000064',
+            'relay_log_pos': 64659963,
+            'relay_log_space': 64660762,
+            'relay_master_log_file': 'mysql-bin.000024',
+            'replicate_do_db': None,
+            'replicate_do_table': None,
+            'replicate_ignore_db': None,
+            'replicate_ignore_server_ids': None,
+            'replicate_ignore_table': None,
+            'replicate_wild_do_table': None,
+            'replicate_wild_ignore_table': None,
+            'seconds_behind_master': 0,
+            'skip_counter': 0,
+            'slave_io_running': True,
+            'slave_io_state': 'Waiting for master to send event',
+            'slave_sql_running': True,
+            'until_condition': 'None',
+            'until_log_file': None,
+            'until_log_pos': 0}
     
     def mock_collect_variables(self):
         return {
@@ -878,6 +927,10 @@ class TestMysql:
         assert Mysql.parse_output_table(self.mock_cmd_show_master_status(),
             convert_bool=True) == self.mock_collect_master_status()
     
+    def test_parse_output_table_tr_show_slave_status(self):
+        assert Mysql.parse_output_table_tr(self.mock_cmd_show_slave_status(),
+            convert_bool=True) == self.mock_collect_slave_status()
+    
     def test_enabled(self):
         mysql = Mysql({}, { 3306: {} })
         
@@ -899,6 +952,7 @@ class TestMysql:
             3306: {
                 'status':        self.mock_collect_status(),
                 'master_status': self.mock_collect_master_status(),
+                'slave_status':  self.mock_collect_slave_status(),
                 'variables':     self.mock_collect_variables()}}
     
     def test_collect_no_master_status(self, monkeypatch):
@@ -910,8 +964,22 @@ class TestMysql:
         
         assert metrics == {
             3306: {
-                'status':    self.mock_collect_status(),
-                'variables': self.mock_collect_variables()}}
+                'status':        self.mock_collect_status(),
+                'slave_status':  self.mock_collect_slave_status(),
+                'variables':     self.mock_collect_variables()}}
+    
+    def test_collect_no_slave_status(self, monkeypatch):
+        monkeypatch.setattr(BasePortCommand, 'exec_command',
+            self.mock_exec_command)
+        
+        mysql = Mysql({}, { 3306: { 'slave_status': False } })
+        metrics = mysql.collect()
+        
+        assert metrics == {
+            3306: {
+                'status':        self.mock_collect_status(),
+                'master_status': self.mock_collect_master_status(),
+                'variables':     self.mock_collect_variables()}}
     
     def test_collect_no_variables(self, monkeypatch):
         monkeypatch.setattr(BasePortCommand, 'exec_command',
@@ -923,4 +991,5 @@ class TestMysql:
         assert metrics == {
             3306: {
                 'status':        self.mock_collect_status(),
-                'master_status': self.mock_collect_master_status(),}}
+                'master_status': self.mock_collect_master_status(),
+                'slave_status':  self.mock_collect_slave_status()}}
