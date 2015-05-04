@@ -28,6 +28,10 @@ class TestMysql:
         f = TestMysql.fixture_path('mysql/show_slave_status.txt')
         return TestMysql.read_fixture(f)
     
+    def mock_cmd_show_slave_hosts(self):
+        f = TestMysql.fixture_path('mysql/show_slave_hosts.txt')
+        return TestMysql.read_fixture(f)
+    
     def mock_cmd_show_variables(self):
         f = TestMysql.fixture_path('mysql/show_variables.txt')
         return TestMysql.read_fixture(f)
@@ -39,6 +43,8 @@ class TestMysql:
             return self.mock_cmd_show_master_status()
         elif Mysql.CMD_SHOW_SLAVE_STATUS in command_f:
             return self.mock_cmd_show_slave_status()
+        elif Mysql.CMD_SHOW_SLAVE_HOSTS in command_f:
+            return self.mock_cmd_show_slave_hosts()
         elif Mysql.CMD_SHOW_VARIABLES in command_f:
             return self.mock_cmd_show_variables()
     
@@ -436,6 +442,13 @@ class TestMysql:
             'until_condition': 'None',
             'until_log_file': None,
             'until_log_pos': 0}
+    
+    def mock_collect_slave_hosts(self):
+        return {
+            '2': {
+                'host': 'i-00000000',
+                'port': 3306,
+                'master_id': 1}}
     
     def mock_collect_variables(self):
         return {
@@ -927,9 +940,13 @@ class TestMysql:
         assert Mysql.parse_output_table(self.mock_cmd_show_master_status(),
             convert_bool=True) == self.mock_collect_master_status()
     
-    def test_parse_output_table_tr_show_slave_status(self):
-        assert Mysql.parse_output_table_tr(self.mock_cmd_show_slave_status(),
-            convert_bool=True) == self.mock_collect_slave_status()
+    def test_parse_output_table_show_slave_hosts(self):
+        assert Mysql.parse_output_table(self.mock_cmd_show_slave_hosts(),
+            convert_bool=True) == self.mock_collect_slave_hosts()
+    
+    def test_parse_output_table_show_slave_status(self):
+        assert Mysql.parse_output_table(self.mock_cmd_show_slave_status(),
+            convert_bool=True, tr=True) == self.mock_collect_slave_status()
     
     def test_enabled(self):
         mysql = Mysql({}, { 3306: {} })
@@ -948,48 +965,18 @@ class TestMysql:
         mysql = Mysql({}, { 3306: {} })
         metrics = mysql.collect()
         
-        assert metrics == {
-            3306: {
-                'status':        self.mock_collect_status(),
-                'master_status': self.mock_collect_master_status(),
-                'slave_status':  self.mock_collect_slave_status(),
-                'variables':     self.mock_collect_variables()}}
-    
-    def test_collect_no_master_status(self, monkeypatch):
-        monkeypatch.setattr(BasePortCommand, 'exec_command',
-            self.mock_exec_command)
+        metrics_t = {
+            'status':        self.mock_collect_status(),
+            'master_status': self.mock_collect_master_status(),
+            'slave_status':  self.mock_collect_slave_status(),
+            'slave_hosts':   self.mock_collect_slave_hosts(),
+            'variables':     self.mock_collect_variables()}
         
-        mysql = Mysql({}, { 3306: { 'master_status': False } })
-        metrics = mysql.collect()
+        assert metrics[3306] == metrics_t
         
-        assert metrics == {
-            3306: {
-                'status':        self.mock_collect_status(),
-                'slave_status':  self.mock_collect_slave_status(),
-                'variables':     self.mock_collect_variables()}}
-    
-    def test_collect_no_slave_status(self, monkeypatch):
-        monkeypatch.setattr(BasePortCommand, 'exec_command',
-            self.mock_exec_command)
-        
-        mysql = Mysql({}, { 3306: { 'slave_status': False } })
-        metrics = mysql.collect()
-        
-        assert metrics == {
-            3306: {
-                'status':        self.mock_collect_status(),
-                'master_status': self.mock_collect_master_status(),
-                'variables':     self.mock_collect_variables()}}
-    
-    def test_collect_no_variables(self, monkeypatch):
-        monkeypatch.setattr(BasePortCommand, 'exec_command',
-            self.mock_exec_command)
-        
-        mysql = Mysql({}, { 3306: { 'variables': False } })
-        metrics = mysql.collect()
-        
-        assert metrics == {
-            3306: {
-                'status':        self.mock_collect_status(),
-                'master_status': self.mock_collect_master_status(),
-                'slave_status':  self.mock_collect_slave_status()}}
+        for setting in Mysql.COLLECT_SETTING_DEFAULTS.keys():
+            mysql2 = Mysql({}, { 3306: { setting: False } })
+            metrics2 = mysql.collect()
+            
+            metrics_t2 = metrics_t.copy()
+            assert metrics2[3306] == metrics_t2

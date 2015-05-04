@@ -24,15 +24,18 @@ class Mysql(BasePortCommand):
                         'password':      "PASSWORD",
                         'master_status': False,
                         'slave_status':  False,
+                        'slave_hosts':   False,
                         'variables':     False}}
         """
     
     COLLECT_SETTING_DEFAULTS = {
         'master_status': True,
+        'slave_hosts':   True,
         'slave_status':  True,
         'variables':     True}
     
     CMD_SHOW_MASTER_STATUS = 'SHOW MASTER STATUS'
+    CMD_SHOW_SLAVE_HOSTS   = 'SHOW SLAVE HOSTS'
     CMD_SHOW_SLAVE_STATUS  = 'SHOW SLAVE STATUS'
     CMD_SHOW_STATUS        = 'SHOW /*!50002 GLOBAL */ STATUS'
     CMD_SHOW_VARIABLES     = 'SHOW VARIABLES'
@@ -86,7 +89,7 @@ class Mysql(BasePortCommand):
         return ds
     
     @staticmethod
-    def parse_output_table(output, convert_bool=False):
+    def parse_output_table(output, convert_bool=False, tr=False):
         if output is None:
             return {}
         
@@ -97,30 +100,17 @@ class Mysql(BasePortCommand):
         
         for row in rows[1:]:
             if len(row) == len(header):
-                k = Base.parse_str_setting_key(row[0])
-                ds[k] = {}
-                for i, v in enumerate(row[1:], start=1):
-                    ds[k][header[i]] = Mysql.__parse_str_setting_value(v,
-                        convert_bool)
-        
-        return ds
-    
-    @staticmethod
-    def parse_output_table_tr(output, convert_bool=False):
-        if output is None:
-            return {}
-        
-        ds = {}
-        
-        rows   = [ r.split('\t') for r in output.split('\n') ]
-        header = [ Base.parse_str_setting_key(k) for k in rows[0] ]
-        
-        for row in rows[1:]:
-            if len(row) == len(header):
-                for i, v in enumerate(row):
-                    k = Base.parse_str_setting_key(header[i])
-                    ds[k] = Mysql.__parse_str_setting_value(v,
-                        convert_bool)
+                if tr:
+                    for i, v in enumerate(row):
+                        k = Base.parse_str_setting_key(header[i])
+                        ds[k] = Mysql.__parse_str_setting_value(v,
+                            convert_bool)
+                else:
+                    k = Base.parse_str_setting_key(row[0])
+                    ds[k] = {}
+                    for i, v in enumerate(row[1:], start=1):
+                        ds[k][header[i]] = Mysql.__parse_str_setting_value(v,
+                            convert_bool)
         
         return ds
     
@@ -144,10 +134,17 @@ class Mysql(BasePortCommand):
         
         if self.collect_setting('slave_status', settings):
             o = self.command_output(port, settings, self.CMD_SHOW_SLAVE_STATUS)
-            ms = self.parse_output_table_tr(o, convert_bool=True)
+            ms = self.parse_output_table(o, convert_bool=True, tr=True)
             
             if len(ms):
                 metrics['slave_status'] = ms
+        
+        if self.collect_setting('slave_hosts', settings):
+            o = self.command_output(port, settings, self.CMD_SHOW_SLAVE_HOSTS)
+            ms = self.parse_output_table(o, convert_bool=True)
+            
+            if len(ms):
+                metrics['slave_hosts'] = ms
         
         if self.collect_setting('variables', settings):
             o = self.command_output(port, settings, self.CMD_SHOW_VARIABLES)
