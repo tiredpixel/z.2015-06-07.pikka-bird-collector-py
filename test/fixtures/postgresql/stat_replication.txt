@@ -1,0 +1,2 @@
+pid|usesysid|usename|application_name|client_addr|client_hostname|client_port|backend_start|backend_xmin|state|sent_location|write_location|flush_location|replay_location|sync_priority|sync_state
+1114|16384|repuser|walreceiver|127.0.0.1||52444|15-MAY-14 19:54:05.535695 -04:00||streaming|0/290044C0|0/290044C0|0/290044C0|0/290044C0|0|async
