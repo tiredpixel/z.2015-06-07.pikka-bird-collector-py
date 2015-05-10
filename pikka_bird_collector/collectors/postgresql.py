@@ -1,5 +1,4 @@
-import re
-
+import pikka_bird_collector.parsers as parsers
 from .base_port_command import BasePortCommand, Base
 
 
@@ -93,42 +92,15 @@ class Postgresql(BasePortCommand):
         
         return c
     
-    @staticmethod
-    def parse_output(output, convert_bool=False, tr=False):
-        if output is None:
-            return {}
-        
-        ds = {}
-        
-        rows   = [ r.split('|') for r in output.split('\n') ]
-        header = [ Base.parse_str_setting_key(k) for k in rows[0] ]
-        
-        for row in rows[1:]:
-            if len(row) == len(header):
-                if tr == True:
-                    for i, v in enumerate(row):
-                        k = Base.parse_str_setting_key(header[i])
-                        ds[k] = Postgresql.__parse_str_setting_value(v,
-                            convert_bool)
-                elif tr == 2:
-                    k = Base.parse_str_setting_key(row[0])
-                    ds[k] = Postgresql.__parse_str_setting_value(row[1],
-                        convert_bool)
-                    
-                else:
-                    k = Base.parse_str_setting_key(row[0])
-                    ds[k] = {}
-                    for i, v in enumerate(row[1:], start=1):
-                        ds[k][header[i]] = Postgresql.__parse_str_setting_value(v,
-                            convert_bool)
-        
-        return ds
-    
     def collect_port(self, port, settings):
         metrics = {}
         
         o = self.command_output(port, settings, self.CMD_STATUS)
-        ms = self.parse_output(o, convert_bool=True, tr=True)
+        ms = parsers.table(o,
+            delim_col='|',
+            converter_key=Base.parse_str_setting_key,
+            converter_value=Postgresql.__parse_str_setting_value,
+            transpose=True)
         
         if len(ms):
             metrics['status'] = ms
@@ -137,14 +109,21 @@ class Postgresql(BasePortCommand):
         
         if self.collect_setting('stat_replication', settings):
             o = self.command_output(port, settings, self.CMD_STAT_REPLICATION)
-            ms = self.parse_output(o, convert_bool=True)
+            ms = parsers.table(o,
+                delim_col='|',
+                converter_key=Base.parse_str_setting_key,
+                converter_value=Postgresql.__parse_str_setting_value,
+                tag_header_col='pid')
             
             if len(ms):
                 metrics['stat_replication'] = ms
         
         if self.collect_setting('settings', settings):
             o = self.command_output(port, settings, self.CMD_SETTINGS)
-            ms = self.parse_output(o, convert_bool=True, tr=2)
+            ms = parsers.table(o,
+                delim_col='|',
+                converter_key=Base.parse_str_setting_key,
+                converter_value=Postgresql.__parse_str_setting_value)
             
             if len(ms):
                 metrics['settings'] = ms
@@ -152,10 +131,10 @@ class Postgresql(BasePortCommand):
         return metrics
     
     @staticmethod
-    def __parse_str_setting_value(value, convert_bool):
+    def __parse_str_setting_value(value):
         v = Base.parse_str_setting_value(value)
         
-        if convert_bool and v in Postgresql.PARSE_BOOLS:
+        if v in Postgresql.PARSE_BOOLS:
             v = Postgresql.PARSE_BOOLS[v]
         
         return v

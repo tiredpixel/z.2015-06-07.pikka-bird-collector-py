@@ -67,6 +67,7 @@ class TestPostgresql:
                 'client_hostname': None,
                 'client_port': 52444,
                 'flush_location': '0/290044C0',
+                'pid': 1114,
                 'replay_location': '0/290044C0',
                 'sent_location': '0/290044C0',
                 'state': 'streaming',
@@ -332,21 +333,6 @@ class TestPostgresql:
                 '--command', 'SHOW ALL',
                 '--no-password', '--quiet', '--no-align', '--pset=footer=off',
                 '--username=USER'])
-    
-    def test_parse_output_none(self):
-        assert Postgresql.parse_output(None) == {}
-    
-    def test_parse_output_status(self):
-        assert Postgresql.parse_output(self.mock_cmd_status(),
-            convert_bool=True, tr=True) == self.mock_collect_status()
-    
-    def test_parse_output_stat_replication(self):
-        assert Postgresql.parse_output(self.mock_cmd_stat_replication(),
-            convert_bool=True) == self.mock_collect_stat_replication()
-    
-    def test_parse_output_settings(self):
-        assert Postgresql.parse_output(self.mock_cmd_settings(),
-            convert_bool=True, tr=2) == self.mock_collect_settings()
     
     def test_enabled(self):
         postgresql = Postgresql({}, { 5432: {} })

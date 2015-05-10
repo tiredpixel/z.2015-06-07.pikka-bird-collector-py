@@ -396,9 +396,10 @@ class TestMysql:
     def mock_collect_master_status(self):
         return {
             'mysql-bin.000024': {
-                'position': 64795006,
                 'binlog_do_db': None,
-                'binlog_ignore_db': None}}
+                'binlog_ignore_db': None,
+                'file': 'mysql-bin.000024',
+                'position': 64795006}}
     
     def mock_collect_slave_status(self):
         return {
@@ -447,8 +448,9 @@ class TestMysql:
         return {
             '2': {
                 'host': 'i-00000000',
+                'master_id': 1,
                 'port': 3306,
-                'master_id': 1}}
+                'server_id': 2}}
     
     def mock_collect_variables(self):
         return {
@@ -921,32 +923,6 @@ class TestMysql:
                 '--execute', 'SHOW VARIABLES',
                 '--batch', '--raw', '--column-names',
                 '--password=PASS"WORD'])
-    
-    def test_parse_output_list_none(self):
-        assert Mysql.parse_output_list(None) == {}
-    
-    def test_parse_output_list_show_status(self):
-        assert Mysql.parse_output_list(self.mock_cmd_show_status(),
-            convert_bool=True) == self.mock_collect_status()
-    
-    def test_parse_output_list_show_variables(self):
-        assert Mysql.parse_output_list(self.mock_cmd_show_variables(),
-            convert_bool=True) == self.mock_collect_variables()
-    
-    def test_parse_output_table_none(self):
-        assert Mysql.parse_output_table(None) == {}
-    
-    def test_parse_output_table_show_master_status(self):
-        assert Mysql.parse_output_table(self.mock_cmd_show_master_status(),
-            convert_bool=True) == self.mock_collect_master_status()
-    
-    def test_parse_output_table_show_slave_hosts(self):
-        assert Mysql.parse_output_table(self.mock_cmd_show_slave_hosts(),
-            convert_bool=True) == self.mock_collect_slave_hosts()
-    
-    def test_parse_output_table_show_slave_status(self):
-        assert Mysql.parse_output_table(self.mock_cmd_show_slave_status(),
-            convert_bool=True, tr=True) == self.mock_collect_slave_status()
     
     def test_enabled(self):
         mysql = Mysql({}, { 3306: {} })
