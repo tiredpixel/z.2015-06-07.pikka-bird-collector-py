@@ -82,7 +82,8 @@ class BasePortCommand(Base):
     
     @classmethod
     def collect_setting(cls, setting, settings):
-        settings = settings or {}
+        settings = (settings and 'collect' in settings and
+            settings['collect']) or {}
         
         if setting in settings:
             return settings[setting]

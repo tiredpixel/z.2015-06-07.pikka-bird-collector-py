@@ -189,9 +189,10 @@ class TestRedis:
         assert metrics[6379] == metrics_t
         
         for setting in Redis.COLLECT_SETTING_DEFAULTS.keys():
-            redis2 = Redis({}, { 6379: { setting: False } })
-            metrics2 = redis.collect()
+            redis2 = Redis({}, { 6379: { 'collect': { setting: False } } })
+            metrics2 = redis2.collect()
             
             metrics_t2 = metrics_t.copy()
+            del metrics_t2[setting]
             assert metrics2[6379] == metrics_t2
 

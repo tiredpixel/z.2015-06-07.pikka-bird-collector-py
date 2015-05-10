@@ -20,8 +20,9 @@ class Postgresql(BasePortCommand):
                 {
                     5432: {
                         'user':             "USER",
-                        'stat_replication': False,
-                        'settings':         False}}
+                        'collect': {
+                            'stat_replication': False,
+                            'settings':         False}}}
         """
     
     COLLECT_SETTING_DEFAULTS = {

@@ -21,10 +21,11 @@ class Mysql(BasePortCommand):
                     3306: {
                         'user':          "USER",
                         'password':      "PASSWORD",
-                        'master_status': False,
-                        'slave_status':  False,
-                        'slave_hosts':   False,
-                        'variables':     False}}
+                        'collect': {
+                            'master_status': False,
+                            'slave_status':  False,
+                            'slave_hosts':   False,
+                            'variables':     False}}}
         """
     
     COLLECT_SETTING_DEFAULTS = {

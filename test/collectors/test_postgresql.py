@@ -359,8 +359,10 @@ class TestPostgresql:
         assert metrics[5432] == metrics_t
         
         for setting in Postgresql.COLLECT_SETTING_DEFAULTS.keys():
-            postgresql2 = Postgresql({}, { 5432: { setting: False } })
-            metrics2 = postgresql.collect()
+            postgresql2 = Postgresql({}, { 5432: {
+                'collect': { setting: False } } })
+            metrics2 = postgresql2.collect()
             
             metrics_t2 = metrics_t.copy()
+            del metrics_t2[setting]
             assert metrics2[5432] == metrics_t2

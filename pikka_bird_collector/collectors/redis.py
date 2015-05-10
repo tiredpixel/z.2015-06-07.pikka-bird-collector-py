@@ -28,7 +28,8 @@ class Redis(BasePortCommand):
                 {
                     6379: {
                         'password':     "PASSWORD",
-                        'cluster_info': False}}
+                        'collect': {
+                            'cluster_info': False}}}
         
         +AUTH+ support is provided via the settings.
         

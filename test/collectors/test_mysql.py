@@ -951,8 +951,9 @@ class TestMysql:
         assert metrics[3306] == metrics_t
         
         for setting in Mysql.COLLECT_SETTING_DEFAULTS.keys():
-            mysql2 = Mysql({}, { 3306: { setting: False } })
-            metrics2 = mysql.collect()
+            mysql2 = Mysql({}, { 3306: {'collect': { setting: False } } })
+            metrics2 = mysql2.collect()
             
             metrics_t2 = metrics_t.copy()
+            del metrics_t2[setting]
             assert metrics2[3306] == metrics_t2
