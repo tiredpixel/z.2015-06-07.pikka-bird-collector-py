@@ -14,6 +14,7 @@ COLLECTORS = [
     'mongodb',
     'mysql',
     'postgresql',
+    'rabbitmq',
     'redis',
     'system']
 
