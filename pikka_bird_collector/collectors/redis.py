@@ -1,5 +1,4 @@
-import re
-
+from pikka_bird_collector.parsers.redis import Redis as Parser
 from .base_port_command import BasePortCommand, Base
 
 
@@ -43,9 +42,6 @@ class Redis(BasePortCommand):
     CMD_CLUSTER_INFO = 'CLUSTER INFO'
     CMD_INFO         = 'INFO'
     
-    RE_SECTION = re.compile(r'# (?P<section>.+)')
-    RE_SETTING = re.compile(r'(?P<k>\w+):(?P<v>.*)')
-    
     @staticmethod
     def command_tool(port, settings, command):
         settings = settings or {}
@@ -58,36 +54,15 @@ class Redis(BasePortCommand):
         c.append(command)
         return c
     
-    @staticmethod
-    def parse_output(output, parse_opts={}):
-        if output is None:
-            return {}
-        
-        ds = {}
-        
-        section = None
-        for row in output.split('\n'):
-            m_section = Redis.RE_SECTION.match(row)
-            if m_section:
-                section = Base.parse_str_setting_key(m_section.group('section'))
-                ds[section] = {}
-            else:
-                m_setting = Redis.RE_SETTING.match(row)
-                if m_setting:
-                    k = Base.parse_str_setting_key(m_setting.group('k'))
-                    v = Base.parse_str_setting_value(m_setting.group('v'))
-                    if section is None:
-                        ds[k] = v
-                    else:
-                        ds[section][k] = v
-        
-        return ds
-    
     def collect_port(self, port, settings):
         metrics = {}
         
+        parser = Parser(
+            converter_key=Base.parse_str_setting_key,
+            converter_value=Base.parse_str_setting_value)
+        
         o = self.command_output(port, settings, self.CMD_INFO)
-        ms = self.parse_output(o)
+        ms = parser.parse(o)
         
         if len(ms):
             metrics['info'] = ms
@@ -96,7 +71,7 @@ class Redis(BasePortCommand):
         
         if self.collect_setting('cluster_info', settings):
             o = self.command_output(port, settings, self.CMD_CLUSTER_INFO)
-            ms = self.parse_output(o)
+            ms = parser.parse(o)
             
             if len(ms):
                 metrics['cluster_info'] = ms
