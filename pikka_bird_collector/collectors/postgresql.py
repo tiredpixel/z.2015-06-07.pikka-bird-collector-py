@@ -1,4 +1,4 @@
-import pikka_bird_collector.parsers as parsers
+from pikka_bird_collector.parsers.table import Table as Parser
 from .base_port_command import BasePortCommand, Base
 
 
@@ -97,11 +97,12 @@ class Postgresql(BasePortCommand):
         metrics = {}
         
         o = self.command_output(port, settings, self.CMD_STATUS)
-        ms = parsers.table(o,
+        parser = Parser(
             delim_col='|',
             converter_key=Base.parse_str_setting_key,
             converter_value=Postgresql.__parse_str_setting_value,
             transpose=True)
+        ms = parser.parse(o)
         
         if len(ms):
             metrics['status'] = ms
@@ -110,21 +111,23 @@ class Postgresql(BasePortCommand):
         
         if self.collect_setting('stat_replication', settings):
             o = self.command_output(port, settings, self.CMD_STAT_REPLICATION)
-            ms = parsers.table(o,
+            parser = Parser(
                 delim_col='|',
                 converter_key=Base.parse_str_setting_key,
                 converter_value=Postgresql.__parse_str_setting_value,
                 tag_header_col='pid')
+            ms = parser.parse(o)
             
             if len(ms):
                 metrics['stat_replication'] = ms
         
         if self.collect_setting('settings', settings):
             o = self.command_output(port, settings, self.CMD_SETTINGS)
-            ms = parsers.table(o,
+            parser = Parser(
                 delim_col='|',
                 converter_key=Base.parse_str_setting_key,
                 converter_value=Postgresql.__parse_str_setting_value)
+            ms = parser.parse(o)
             
             if len(ms):
                 metrics['settings'] = ms

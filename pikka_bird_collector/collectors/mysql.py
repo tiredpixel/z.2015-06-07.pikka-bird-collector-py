@@ -1,4 +1,4 @@
-import pikka_bird_collector.parsers as parsers
+from pikka_bird_collector.parsers.table import Table as Parser
 from .base_port_command import BasePortCommand, Base
 
 
@@ -71,9 +71,10 @@ class Mysql(BasePortCommand):
         metrics = {}
         
         o = self.command_output(port, settings, self.CMD_SHOW_STATUS)
-        ms = parsers.table(o,
+        parser = Parser(
             converter_key=Base.parse_str_setting_key,
             converter_value=Mysql.__parse_str_setting_value)
+        ms = parser.parse(o)
         
         if len(ms):
             metrics['status'] = ms
@@ -82,39 +83,43 @@ class Mysql(BasePortCommand):
         
         if self.collect_setting('master_status', settings):
             o = self.command_output(port, settings, self.CMD_SHOW_MASTER_STATUS)
-            ms = parsers.table(o,
+            parser = Parser(
                 converter_key=Base.parse_str_setting_key,
                 converter_value=Mysql.__parse_str_setting_value,
                 tag_header_col='file')
+            ms = parser.parse(o)
             
             if len(ms):
                 metrics['master_status'] = ms
         
         if self.collect_setting('slave_status', settings):
             o = self.command_output(port, settings, self.CMD_SHOW_SLAVE_STATUS)
-            ms = parsers.table(o,
+            parser = Parser(
                 converter_key=Base.parse_str_setting_key,
                 converter_value=Mysql.__parse_str_setting_value,
                 transpose=True)
+            ms = parser.parse(o)
             
             if len(ms):
                 metrics['slave_status'] = ms
         
         if self.collect_setting('slave_hosts', settings):
             o = self.command_output(port, settings, self.CMD_SHOW_SLAVE_HOSTS)
-            ms = parsers.table(o,
+            parser = Parser(
                 converter_key=Base.parse_str_setting_key,
                 converter_value=Mysql.__parse_str_setting_value,
                 tag_header_col='server_id')
+            ms = parser.parse(o)
             
             if len(ms):
                 metrics['slave_hosts'] = ms
         
         if self.collect_setting('variables', settings):
             o = self.command_output(port, settings, self.CMD_SHOW_VARIABLES)
-            ms = parsers.table(o,
+            parser = Parser(
                 converter_key=Base.parse_str_setting_key,
                 converter_value=Mysql.__parse_str_setting_value)
+            ms = parser.parse(o)
             
             if len(ms):
                 metrics['variables'] = ms
