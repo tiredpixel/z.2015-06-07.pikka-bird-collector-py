@@ -11,12 +11,12 @@ import pikka_bird_collector.config
 
 
 COLLECTORS = [
+    'system', # keep first; sort rest
     'mongodb',
     'mysql',
     'postgresql',
     'rabbitmq',
-    'redis',
-    'system']
+    'redis']
 
 COLLECTORS_MODULE_P = 'pikka_bird_collector.collectors.'
 
