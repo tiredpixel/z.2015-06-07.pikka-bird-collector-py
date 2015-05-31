@@ -1,7 +1,9 @@
 import re
 
+from .base import Base
 
-class Redis():
+
+class Redis(Base):
     """
         Parses main Redis INFO-type format.
         
@@ -16,43 +18,9 @@ class Redis():
     RE_SECTION = re.compile(r'# (?P<section>.+)')
     RE_SETTING = re.compile(r'(?P<k>\w+):(?P<v>.*)')
     
-    def __init__(self,
-            converter_key=None,
-            converter_value=None):
-        """
-            PARAMETERS:
-                converter_key : function
-                    function for converting keys
-                    
-                    e.g.
-                        def converter_key(key):
-                            return key.strip()
-                converter_value : function
-                    function for converting values
-                    
-                    e.g.
-                        def converter_value(value):
-                            return value.strip()
-            """
-        self.converter_key   = converter_key
-        self.converter_value = converter_value
-    
-    def parse(self, raw):
-        """
-            PARAMETERS:
-                raw : string
-                    raw string to be parsed
-            
-            RETURN:
-                : dict
-                    parsed output
-            """
-        if raw is None:
-            return {}
-        
-        self.__reset()
-        
+    def parse2(self, raw):
         section = None
+        
         for row in raw.split('\n'):
             m_section = Redis.RE_SECTION.match(row)
             if m_section:
@@ -69,6 +37,3 @@ class Redis():
                         self.ds[section][k] = v
         
         return self.ds
-    
-    def __reset(self):
-        self.ds = {}

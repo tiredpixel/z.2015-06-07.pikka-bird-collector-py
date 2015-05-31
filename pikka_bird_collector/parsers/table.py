@@ -1,4 +1,7 @@
-class Table():
+from .base import Base
+
+
+class Table(Base):
     """
         Parses common table formats.
         
@@ -77,21 +80,7 @@ class Table():
         if not transpose:
             self.tag_header_col = tag_header_col
     
-    def parse(self, raw):
-        """
-            PARAMETERS:
-                raw : string
-                    raw string to be parsed
-            
-            RETURN:
-                : dict
-                    parsed output
-            """
-        if raw is None:
-            return {}
-        
-        self.__reset()
-        
+    def parse2(self, raw):
         rows   = [ r.split(self.delim_col) for r in raw.split(self.delim_row) ]
         header = [ self.converter_key(k) for k in rows[0] ]
         
@@ -104,12 +93,8 @@ class Table():
                         self.__parse_row_tag_header_col(row, header)
                     else:
                         self.__parse_row_non_transpose(row)
-                        
         
         return self.ds
-    
-    def __reset(self):
-        self.ds = {}
     
     def __parse_row_non_transpose(self, row):
         k = self.converter_key(row[0])
@@ -124,5 +109,6 @@ class Table():
         h_i = header.index(self.tag_header_col)
         k = self.converter_key(row[h_i])
         self.ds[k] = {}
+        
         for i, v in enumerate(row):
             self.ds[k][header[i]] = self.converter_value(v)
