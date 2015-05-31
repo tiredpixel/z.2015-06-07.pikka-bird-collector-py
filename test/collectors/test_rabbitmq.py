@@ -160,17 +160,6 @@ class TestRabbitmq:
         assert (Rabbitmq.command_tool(5672, {}, 'status') ==
             ['rabbitmqctl', '-q', 'status'])
     
-    def test_parse_output_none(self):
-        assert Rabbitmq.parse_output(None) == {}
-    
-    def test_parse_output_status(self):
-        assert (Rabbitmq.parse_output(self.mock_cmd_status()) ==
-            self.mock_collect_status())
-    
-    def test_parse_output_cluster_status(self):
-        assert (Rabbitmq.parse_output(self.mock_cmd_cluster_status()) ==
-            self.mock_collect_cluster_status())
-    
     def test_enabled(self):
         rabbitmq = Rabbitmq({}, { 5672: {} })
         

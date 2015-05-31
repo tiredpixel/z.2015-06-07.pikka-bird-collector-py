@@ -7,8 +7,8 @@ class Base():
         """
     
     def __init__(self,
-            converter_key=None,
-            converter_value=None):
+            converter_key=lambda e: e,
+            converter_value=lambda e: e):
         """
             PARAMETERS:
                 converter_key : function
