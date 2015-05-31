@@ -151,20 +151,6 @@ class TestRedis:
         assert (Redis.command_tool(6380, { 'password': "PW" }, 'DBSIZE') ==
             ['redis-cli', '-p', 6380, '-a', 'PW', 'DBSIZE'])
     
-    def test_parse_output_none(self):
-        assert Redis.parse_output(None) == {}
-    
-    def test_parse_output_error(self):
-        assert Redis.parse_output(self.mock_error()) == {}
-    
-    def test_parse_output_info(self):
-        assert (Redis.parse_output(self.mock_cmd_info()) ==
-            self.mock_collect_info())
-    
-    def test_parse_output_cluster_info(self):
-        assert (Redis.parse_output(self.mock_cmd_cluster_info()) ==
-            self.mock_collect_cluster_info())
-    
     def test_enabled(self):
         redis = Redis({}, { 6379: {} })
         
@@ -195,4 +181,3 @@ class TestRedis:
             metrics_t2 = metrics_t.copy()
             del metrics_t2[setting]
             assert metrics2[6379] == metrics_t2
-
