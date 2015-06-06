@@ -25,14 +25,14 @@ class Mysql(BasePortCommand):
                             'master_status': False,
                             'slave_status':  False,
                             'slave_hosts':   False,
-                            'variables':     False}}}
+                            'variables':     True}}}
         """
     
     COLLECT_SETTING_DEFAULTS = {
         'master_status': True,
         'slave_hosts':   True,
         'slave_status':  True,
-        'variables':     True}
+        'variables':     False}
     
     CMD_SHOW_MASTER_STATUS = 'SHOW MASTER STATUS'
     CMD_SHOW_SLAVE_HOSTS   = 'SHOW SLAVE HOSTS'
