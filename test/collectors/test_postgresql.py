@@ -351,18 +351,26 @@ class TestPostgresql:
         postgresql = Postgresql({}, { 5432: {} })
         metrics = postgresql.collect()
         
-        metrics_t = {
+        metrics_t0 = {
             'status':           self.mock_collect_status(),
             'stat_replication': self.mock_collect_stat_replication(),
             'settings':         self.mock_collect_settings()}
         
+        metrics_t = {
+            'status': self.mock_collect_status()}
+        
+        for setting, v in Postgresql.COLLECT_SETTING_DEFAULTS.items():
+            if v:
+                metrics_t[setting] = metrics_t0[setting]
+        
         assert metrics[5432] == metrics_t
         
-        for setting in Postgresql.COLLECT_SETTING_DEFAULTS.keys():
+        for setting, v in Postgresql.COLLECT_SETTING_DEFAULTS.items():
             postgresql2 = Postgresql({}, { 5432: {
-                'collect': { setting: False } } })
+                'collect': { setting: v } } })
             metrics2 = postgresql2.collect()
             
             metrics_t2 = metrics_t.copy()
-            del metrics_t2[setting]
+            if v:
+                metrics_t2[setting] = metrics_t0[setting]
             assert metrics2[5432] == metrics_t2

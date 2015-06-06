@@ -22,12 +22,12 @@ class Postgresql(BasePortCommand):
                         'user':             "USER",
                         'collect': {
                             'stat_replication': False,
-                            'settings':         False}}}
+                            'settings':         True}}}
         """
     
     COLLECT_SETTING_DEFAULTS = {
         'stat_replication': True,
-        'settings':         True}
+        'settings':         False}
     
     CMD_STATUS = """
         SELECT
