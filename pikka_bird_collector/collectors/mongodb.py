@@ -9,21 +9,28 @@ class Mongodb(BasePortCommand):
         Collector for MongoDB (https://www.mongodb.org/).
         
         The collector is enabled whenever non-empty settings are passed.
+        Multiple instances running on the same box are supported; just specify
+        each port within settings.
+        
+        By default, core status and replication status are gathered.
+        
+        Note that this collector imports metrics keys unmodified, so most keys
+        use camelcase; this might change. [TODO review]
         
         DEPENDENCIES:
             mongo
                 Available in PATH.
         
         SETTINGS:
-            (minimal):
+            minimal:
                 {
                     27017: None}
-            (supported):
+            supported:
                 {
                     27017: {
                         'user':     "USER",
                         'password': "PASSWORD",
-                        'collect': {
+                        'collect':  {
                             'rs_status': False}}}
         """
     

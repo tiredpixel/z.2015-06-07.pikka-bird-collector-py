@@ -7,21 +7,32 @@ class Mysql(BasePortCommand):
         Collector for MySQL (https://www.mysql.com/).
         
         The collector is enabled whenever non-empty settings are passed.
+        Multiple instances running on the same box are supported; just specify
+        each port within settings.
+        
+        By default, core status, master status, slave status, and slave hosts
+        are gathered. Optionally, variables can be gathered.
+        
+        Because MySQL metrics are inconsistent in their representation of
+        booleans (e.g. `ON`, `YES`, `Yes`) and to minimise payload size and
+        downstream storage, all values are remapped if they match these. This
+        probably won't cause you problems, but if encounter a string which is no
+        longer a string, this is probably why. :)
         
         DEPENDENCIES:
             mysql
                 Available in PATH.
         
         SETTINGS:
-            (minimal):
+            minimal:
                 {
                     3306: None}
-            (supported):
+            supported:
                 {
                     3306: {
-                        'user':          "USER",
-                        'password':      "PASSWORD",
-                        'collect': {
+                        'user':     "USER",
+                        'password': "PASSWORD",
+                        'collect':  {
                             'master_status': False,
                             'slave_status':  False,
                             'slave_hosts':   False,

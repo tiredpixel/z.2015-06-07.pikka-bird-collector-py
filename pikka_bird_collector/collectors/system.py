@@ -6,24 +6,31 @@ from .base import Base
 
 class System(Base):
     """
-        Collector for system metrics: load, CPU, memory, disk. This is always
-        enabled for any collector. This collector follows one of the design
-        principles of Pikka Bird, which is to collect as many metrics as are
-        available, including with convenience calculations which would require
-        knowledge of which metrics to subtract from which, etc. Many metrics are
-        provided in both their raw form (containing unit within key) and as a
-        ratio (`_/`), which are used in preference to percentages.
+        Collector for system.
         
-        The collector is always enabled.
+        This collector is always enabled, and you can't disable it. This is
+        intentional, as I can't think of a reason why you'd want to collect
+        metrics from a server without caring about its health. :) This also
+        enables Pikka Bird to be useful out the box; even with no configuration,
+        it should at least start monitoring useful things.
+        
+        Every type of metric within this collector is always gathered.
+        
+        This collector gathers metrics for:
+        
+        - load average
+        - CPU usage
+        - memory usage
+        - disk usage
         
         DEPENDENCIES:
-            (none)
+            None
         
         SETTINGS:
-            (minimal):
-                (none)
-            (supported):
-                (none)
+            minimal:
+                None
+            supported:
+                None
         """
     
     # accuracy to use for ratios (decimal places)
