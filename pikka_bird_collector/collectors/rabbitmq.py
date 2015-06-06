@@ -8,15 +8,28 @@ class Rabbitmq(BasePortCommand):
         
         The collector is enabled whenever non-empty settings are passed.
         
+        For consistency, a port is required for this collector even though
+        `rabbitmqctl` doesn't accept one, instead returning all information;
+        this might change. [TODO review]
+        
+        This collector is slower than others, because of utilising a naïve
+        Erlang data parser in Python. There might be a neater solution, or the
+        parser could certainly be improved -- but it's likely good enough.
+        
+        Because of the difficulty in mapping Erlang structures to something
+        suited to JSON, all 'values' are treated as arrays, with empty arrays
+        changed to `None` and length-1 arrays unpacked. This gives sensible
+        results in most cases, but be aware. :)
+        
         DEPENDENCIES:
             rabbitmqctl
                 Available in PATH.
         
         SETTINGS:
-            (minimal):
+            minimal:
                 {
                     5672: None}
-            (supported):
+            supported:
                 {
                     5672: {
                         'collect': {

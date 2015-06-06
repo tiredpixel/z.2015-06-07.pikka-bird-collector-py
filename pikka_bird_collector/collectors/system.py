@@ -6,24 +6,31 @@ from .base import Base
 
 class System(Base):
     """
-        Collector for system metrics: load, CPU, memory, disk. This is always
-        enabled for any collector. This collector follows one of the design
-        principles of Pikka Bird, which is to collect as many metrics as are
-        available, including with convenience calculations which would require
-        knowledge of which metrics to subtract from which, etc. Many metrics are
-        provided in both their raw form (containing unit within key) and as a
-        ratio (`_/`), which are used in preference to percentages.
+        Collector for system.
         
-        The collector is always enabled.
+        This collector is always enabled, and you can't disable it. This is
+        intentional, as I can't think of a reason why you'd want to collect
+        metrics from a server without caring about its health. :) This also
+        enables Pikka Bird to be useful out the box; even with no configuration,
+        it should at least start monitoring useful things.
+        
+        Every type of metric within this collector is always gathered.
+        
+        This collector gathers metrics for:
+        
+        - load average
+        - CPU usage
+        - memory usage
+        - disk usage
         
         DEPENDENCIES:
-            (none)
+            None
         
         SETTINGS:
-            (minimal):
-                (none)
-            (supported):
-                (none)
+            minimal:
+                None
+            supported:
+                None
         """
     
     # accuracy to use for ratios (decimal places)
@@ -43,13 +50,16 @@ class System(Base):
             'disk':   self.__disk()}
     
     def __load(self):
+        l_round = lambda e: round(e, self.RATIO_DP)
+        
         try:
             load1, load5, load15 = os.getloadavg()
             
             return {
-                '1_min_avg':  round(load1, self.RATIO_DP),
-                '5_min_avg':  round(load5, self.RATIO_DP),
-                '15_min_avg': round(load15, self.RATIO_DP)}
+                'avg': {
+                     '1': l_round(load1),
+                     '5': l_round(load5),
+                    '15': l_round(load15)}}
         except OSError:
             return {}
     
@@ -58,111 +68,121 @@ class System(Base):
         
         ctps = psutil.cpu_times_percent(self.CPU_SAMPLE_S, percpu=True)
         
+        l_round = lambda e: round(e / 100.0, self.RATIO_DP)
+        
         for cpu_i, ctp in enumerate(ctps):
             ctp_fs = ctp._fields
             
             metrics_cpu = {
-                'idle_/':        ctp.idle,
-                'busy_/':        (100 - ctp.idle),
-                'busy_user_/':   ctp.user,
-                'busy_system_/': ctp.system}
+                'idle': {
+                    '/': l_round(ctp.idle)},
+                'busy': {
+                    '/': l_round(100 - ctp.idle),
+                    'user': {
+                        '/': l_round(ctp.user)},
+                    'system': {
+                        '/': l_round(ctp.system)}}}
             
-            if 'nice' in ctp_fs:
-                metrics_cpu.update({
-                    'busy_nice_/': ctp.nice})
-            if 'iowait' in ctp_fs:
-                metrics_cpu.update({
-                    'busy_iowait_/': ctp.iowait})
-            if 'irq' in ctp_fs:
-                metrics_cpu.update({
-                    'busy_irq_/': ctp.irq})
-            if 'softirq' in ctp_fs:
-                metrics_cpu.update({
-                    'busy_softirq_/': ctp.softirq})
-            if 'steal' in ctp_fs:
-                metrics_cpu.update({
-                    'busy_steal_/': ctp.steal})
-            if 'guest' in ctp_fs:
-                metrics_cpu.update({
-                    'busy_guest_/': ctp.guest})
-            if 'guest_nice' in ctp_fs:
-                metrics_cpu.update({
-                    'busy_guest_nice_/': ctp.guest_nice})
+            if 'nice' in ctp_fs and ctp.nice:
+                metrics_cpu['busy']['nice'] = {
+                    '/': l_round(ctp.nice)}
+            if 'iowait' in ctp_fs and ctp.iowait:
+                metrics_cpu['busy']['iowait'] = {
+                    '/': l_round(ctp.iowait)}
+            if 'irq' in ctp_fs and ctp.irq:
+                metrics_cpu['busy']['irq'] = {
+                    '/': l_round(ctp.irq)}
+            if 'softirq' in ctp_fs and ctp.softirq:
+                metrics_cpu['busy']['softirq'] = {
+                    '/': l_round(ctp.softirq)}
+            if 'steal' in ctp_fs and ctp.steal:
+                metrics_cpu['busy']['steal'] = {
+                    '/': l_round(ctp.steal)}
+            if 'guest' in ctp_fs and ctp.guest:
+                metrics_cpu['busy']['guest'] = {
+                    '/': l_round(ctp.guest)}
+            if 'guest_nice' in ctp_fs and ctp.guest_nice:
+                metrics_cpu['busy']['guest_nice'] = {
+                    '/': l_round(ctp.guest_nice)}
             
-            metrics[cpu_i] = {
-                k: round(v / 100.0, self.RATIO_DP)
-                    for k, v in metrics_cpu.items()
-                    if v is not False } # filter metrics unavailable on system
+            metrics[cpu_i] = metrics_cpu
         
         return metrics
     
     def __memory(self):
         metrics = {}
         
-        virtual = psutil.virtual_memory()
-        
+        virtual    = psutil.virtual_memory()
         virtual_fs = virtual._fields
         
-        virtual_unavailable = virtual.total - virtual.available
+        virtual_unavail = virtual.total - virtual.available
         
         virtual_total = float(virtual.total) # COMPAT: Python 2.7
         
+        l_round = lambda e: round(e / virtual_total, self.RATIO_DP)
+        
         metrics_virtual = {
-            'virtual_available_/':   round(virtual.available / virtual_total, self.RATIO_DP),
-            'virtual_available_b':   virtual.available,
-            'virtual_b':             virtual.total,
-            'virtual_free_/':        round(virtual.free / virtual_total, self.RATIO_DP),
-            'virtual_free_b':        virtual.free,
-            'virtual_unavailable_/': round(virtual_unavailable / virtual_total, self.RATIO_DP),
-            'virtual_unavailable_b': virtual_unavailable,
-            'virtual_used_/':        round(virtual.used / virtual_total, self.RATIO_DP),
-            'virtual_used_b':        virtual.used}
+            'b': virtual.total,
+            'avail': {
+                'b': virtual.available,
+                '/': l_round(virtual.available)},
+            'used': {
+                'b': virtual.used,
+                '/': l_round(virtual.used)},
+            'free': {
+                'b': virtual.free,
+                '/': l_round(virtual.free)},
+            'unavail': {
+                'b': virtual_unavail,
+                '/': l_round(virtual_unavail)}}
         
-        if 'active' in virtual_fs:
-            metrics_virtual.update({
-                'virtual_active_/': round(virtual.active / virtual_total, self.RATIO_DP),
-                'virtual_active_b': virtual.active})
-        if 'buffers' in virtual_fs:
-            metrics_virtual.update({
-                'virtual_buffers_/': round(virtual.buffers / virtual_total, self.RATIO_DP),
-                'virtual_buffers_b': virtual.buffers})
-        if 'cached' in virtual_fs:
-            metrics_virtual.update({
-                'virtual_cached_/': round(virtual.cached / virtual_total, self.RATIO_DP),
-                'virtual_cached_b': virtual.cached})
-        if 'inactive' in virtual_fs:
-            metrics_virtual.update({
-                'virtual_inactive_/': round(virtual.inactive / virtual_total, self.RATIO_DP),
-                'virtual_inactive_b': virtual.inactive})
-        if 'shared' in virtual_fs:
-            metrics_virtual.update({
-                'virtual_shared_/': round(virtual.shared / virtual_total, self.RATIO_DP),
-                'virtual_shared_b': virtual.shared})
-        if 'wired' in virtual_fs:
-            metrics_virtual.update({
-                'virtual_wired_/': round(virtual.wired / virtual_total, self.RATIO_DP),
-                'virtual_wired_b': virtual.wired})
+        if 'active' in virtual_fs and virtual.active:
+            metrics_virtual['active'] = {
+                'b': virtual.active,
+                '/': l_round(virtual.active)}
+        if 'inactive' in virtual_fs and virtual.inactive:
+            metrics_virtual['inactive'] = {
+                'b': virtual.inactive,
+                '/': l_round(virtual.inactive)}
+        if 'buffers' in virtual_fs and virtual.buffers:
+            metrics_virtual['buffers'] = {
+                'b': virtual.buffers,
+                '/': l_round(virtual.buffers)}
+        if 'cached' in virtual_fs and virtual.cached:
+            metrics_virtual['cached'] = {
+                'b': virtual.cached,
+                '/': l_round(virtual.cached)}
+        if 'wired' in virtual_fs and virtual.wired:
+            metrics_virtual['wired'] = {
+                'b': virtual.wired,
+                '/': l_round(virtual.wired)}
+        if 'shared' in virtual_fs and virtual.shared:
+            metrics_virtual['shared'] = {
+                'b': virtual.shared,
+                '/': l_round(virtual.shared)}
         
-        metrics.update({ k: v for k, v in metrics_virtual.items()
-                    if v is not False }) # filter metrics unavailable on system
+        metrics['virtual'] = metrics_virtual
         
         swap = psutil.swap_memory()
         
         metrics_swap = {
-            'sin_b':       swap.sin,
-            'sout_b':      swap.sout,
-            'swap_b':      swap.total,
-            'swap_free_b': swap.free,
-            'swap_used_b': swap.used}
+            'b': swap.total,
+            'used': {
+                'b': swap.used},
+            'free': {
+                'b': swap.free},
+            'sin': {
+                'b': swap.sin},
+            'sout': {
+                'b': swap.sout}}
         
         swap_total = float(swap.total) # COMPAT: Python 2.7
         
         if swap.total > 0:
-            metrics_swap.update({
-                'swap_free_/': round(swap.free / swap_total, self.RATIO_DP),
-                'swap_used_/': round(swap.used / swap_total, self.RATIO_DP)})
+            metrics_swap['free']['/'] = round(swap.free / swap_total, self.RATIO_DP)
+            metrics_swap['used']['/'] = round(swap.used / swap_total, self.RATIO_DP)
         
-        metrics.update(metrics_swap)
+        metrics['swap'] = metrics_swap
         
         return metrics
     
@@ -170,6 +190,8 @@ class System(Base):
         metrics = {}
         
         partitions = [p for p in psutil.disk_partitions(all=False)]
+        
+        l_round = lambda e, f: round(e / f, self.RATIO_DP)
         
         for partition in partitions:
             try:
@@ -181,27 +203,38 @@ class System(Base):
                 usage_total    = float(usage.total) # COMPAT: Python 2.7
                 
                 metrics[partition.mountpoint] = {
-                    'block_size_b':         stats.f_bsize,
-                    'blocks':               stats.f_blocks,
-                    'blocks_free':          stats.f_bfree,
-                    'blocks_free_/':        round(stats.f_bfree / stats_f_blocks, self.RATIO_DP),
-                    'blocks_free_unpriv':   stats.f_bavail,
-                    'blocks_free_unpriv_/': round(stats.f_bavail / stats_f_blocks, self.RATIO_DP),
-                    'device':               partition.device,
-                    'filename_len_max':     stats.f_namemax,
-                    'flags':                stats.f_flag,
-                    'fragment_size_b':      stats.f_frsize,
-                    'fstype':               partition.fstype,
-                    'inodes':               stats.f_files,
-                    'inodes_free':          stats.f_ffree,
-                    'inodes_free_/':        round(stats.f_ffree / stats_f_files, self.RATIO_DP),
-                    'inodes_free_unpriv':   stats.f_favail,
-                    'inodes_free_unpriv_/': round(stats.f_favail / stats_f_files, self.RATIO_DP),
-                    'space_b':              usage.total,
-                    'space_free_/':         round(usage.free / usage_total, self.RATIO_DP),
-                    'space_free_b':         usage.free,
-                    'space_used_/':         round(usage.used / usage_total, self.RATIO_DP),
-                    'space_used_b':         usage.used}
+                    'block_size': {
+                        'b': stats.f_bsize},
+                    'blocks': {
+                        'n': stats.f_blocks,
+                        'free': {
+                            'n': stats.f_bfree,
+                            '/': l_round(stats.f_bfree, stats_f_blocks)},
+                        'avail': {
+                            'n': stats.f_bavail,
+                            '/': l_round(stats.f_bavail, stats_f_blocks)}},
+                    'device': partition.device,
+                    'filename_len_max': stats.f_namemax,
+                    'flags': stats.f_flag,
+                    'fragment_size': {
+                        'b': stats.f_frsize},
+                    'fstype': partition.fstype,
+                    'inodes': {
+                        'n': stats.f_files,
+                        'free': {
+                            'n': stats.f_ffree,
+                            '/': l_round(stats.f_ffree, stats_f_files)},
+                        'avail': {
+                            'n': stats.f_favail,
+                            '/': l_round(stats.f_favail, stats_f_files)}},
+                    'space': {
+                        'b': usage.total,
+                        'free': {
+                            'b': usage.free,
+                            '/': l_round(usage.free, usage_total)},
+                        'used': {
+                            'b': usage.used,
+                            '/': l_round(usage.used, usage_total)}}}
             except (IOError, OSError):
                 metrics[partition.mountpoint] = {}
         

@@ -27,7 +27,7 @@ class Config():
                 path : string
                     filename or directory of configs to parse
             """
-        self.__settings = self.__parse_path(path)
+        self.__settings = self.__parse_path(path) or {}
     
     def settings(self, service):
         """

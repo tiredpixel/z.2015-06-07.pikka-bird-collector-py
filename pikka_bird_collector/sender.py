@@ -18,6 +18,15 @@ class Sender():
         'collections': '/collections'}
     
     def __init__(self, server_uri, format='binary', logger=None):
+        """
+            PARAMETERS:
+                server_uri : string
+                    URI of Pikka Bird Server
+                format : string
+                    format to use for payloads (binary, json)
+                logger : logger
+                    logger
+            """
         self.server_uri = server_uri
         self.format     = format
         self.logger     = logger or logging.getLogger()

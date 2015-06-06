@@ -941,19 +941,27 @@ class TestMysql:
         mysql = Mysql({}, { 3306: {} })
         metrics = mysql.collect()
         
-        metrics_t = {
+        metrics_t0 = {
             'status':        self.mock_collect_status(),
             'master_status': self.mock_collect_master_status(),
             'slave_status':  self.mock_collect_slave_status(),
             'slave_hosts':   self.mock_collect_slave_hosts(),
             'variables':     self.mock_collect_variables()}
         
+        metrics_t = {
+            'status': self.mock_collect_status()}
+        
+        for setting, v in Mysql.COLLECT_SETTING_DEFAULTS.items():
+            if v:
+                metrics_t[setting] = metrics_t0[setting]
+        
         assert metrics[3306] == metrics_t
         
-        for setting in Mysql.COLLECT_SETTING_DEFAULTS.keys():
-            mysql2 = Mysql({}, { 3306: {'collect': { setting: False } } })
+        for setting, v in Mysql.COLLECT_SETTING_DEFAULTS.items():
+            mysql2 = Mysql({}, { 3306: { 'collect': { setting: v } } })
             metrics2 = mysql2.collect()
             
             metrics_t2 = metrics_t.copy()
-            del metrics_t2[setting]
+            if v:
+                metrics_t2[setting] = metrics_t0[setting]
             assert metrics2[3306] == metrics_t2

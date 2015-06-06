@@ -7,41 +7,41 @@ import os
 import pikka_bird_collector.app
 
 
-defaults = {
-    'command': 'collect',
-    'format': 'binary',
-    'log_level': 'INFO',
-    'server_uri': 'http://localhost:5000'}
+DEFAULTS = {
+    'command':    'collect',
+    'server_uri': 'http://localhost:5000',
+    'format':     'binary',
+    'log_level':  'INFO'}
 
 parser = argparse.ArgumentParser(
     description="Pikka Bird ops monitoring tool Collector component.")
 
-parser.add_argument('-c', '--command',
+parser.add_argument('-X', '--command',
     metavar='COMMAND',
     choices=['collect'],
-    default=defaults['command'],
-    help="command (default: %(command)s)" % defaults)
-
-parser.add_argument('-f', '--format',
-    metavar='FORMAT',
-    choices=['binary', 'json'],
-    default=defaults['format'],
-    help="format (default: %(format)s)" % defaults)
+    default=DEFAULTS['command'],
+    help="command (default: %(command)s)" % DEFAULTS)
 
 parser.add_argument('-s', '--server-uri',
     metavar='SERVER_URI',
-    default=defaults['server_uri'],
-    help="server URI (default: %(server_uri)s))" % defaults)
+    default=DEFAULTS['server_uri'],
+    help="server URI (default: %(server_uri)s))" % DEFAULTS)
 
-parser.add_argument('--config',
-    metavar='CONFIG',
-    help="config")
+parser.add_argument('-c', '--conf',
+    metavar='CONF',
+    help="conf")
+
+parser.add_argument('--format',
+    metavar='FORMAT',
+    choices=['binary', 'json'],
+    default=DEFAULTS['format'],
+    help="format (default: %(format)s)" % DEFAULTS)
 
 parser.add_argument('--log-level',
     metavar='LOG_LEVEL',
     choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
-    default=defaults['log_level'],
-    help="log-level (default: %(log_level)s))" % defaults)
+    default=DEFAULTS['log_level'],
+    help="log-level (default: %(log_level)s))" % DEFAULTS)
 
 parser.add_argument('-e', '--eternal',
     metavar='ETERNAL',

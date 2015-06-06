@@ -6,28 +6,27 @@ class Redis(BasePortCommand):
     """
         Collector for Redis (http://redis.io/).
         
-        This collector demonstrates one of the design principles of Pikka Bird,
-        which is to be tolerant of multiple versions of services, attempting to
-        parse their output and letting them control their own metrics names
-        rather than forcing them to be called specific things. Rather than
-        direct Redis bindings being used requiring an external dependency, or a
-        direct socket connection, the +redis-cli+ command-line tool is used.
-        
         The collector is enabled whenever non-empty settings are passed.
+        Multiple instances running on the same box are supported; just specify
+        each port within settings.
+        
+        By default, core status and cluster status are gathered.
+        
+        For consistency, `AUTH` is called `password`.
         
         DEPENDENCIES:
             redis-cli
                 Available in PATH.
         
         SETTINGS:
-            (minimal):
+            minimal:
                 {
                     6379: None}
-            (supported):
+            supported:
                 {
                     6379: {
-                        'password':     "PASSWORD",
-                        'collect': {
+                        'password': "PASSWORD",
+                        'collect':  {
                             'cluster_info': False}}}
         
         +AUTH+ support is provided via the settings.

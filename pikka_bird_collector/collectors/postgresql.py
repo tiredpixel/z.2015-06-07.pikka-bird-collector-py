@@ -7,27 +7,34 @@ class Postgresql(BasePortCommand):
         Collector for PostgreSQL (http://www.postgresql.org/).
         
         The collector is enabled whenever non-empty settings are passed.
+        Multiple instances running on the same box are supported; just specify
+        each port within settings.
+        
+        By default, core status and replication status are gathered. Optionally,
+        settings can be gathered.
+        
+        For consistency, `username` is called `user`.
         
         DEPENDENCIES:
             psql
                 Available in PATH.
         
         SETTINGS:
-            (minimal):
+            minimal:
                 {
                     5432: None}
-            (supported):
+            supported:
                 {
                     5432: {
-                        'user':             "USER",
+                        'user':    "USER",
                         'collect': {
                             'stat_replication': False,
-                            'settings':         False}}}
+                            'settings':         True}}}
         """
     
     COLLECT_SETTING_DEFAULTS = {
         'stat_replication': True,
-        'settings':         True}
+        'settings':         False}
     
     CMD_STATUS = """
         SELECT
