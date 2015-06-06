@@ -7,7 +7,7 @@ import socket
 import sys
 
 import pikka_bird_collector
-import pikka_bird_collector.config
+from .config import Config
 
 
 COLLECTORS = [
@@ -39,7 +39,7 @@ class Collector():
                 logger : logger
                     logger
             """
-        self.config = pikka_bird_collector.config.Config(config)
+        self.config = Config(config)
         self.logger = logger or logging.getLogger()
         
         self.__set_environment()

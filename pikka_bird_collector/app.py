@@ -1,8 +1,8 @@
 import random
 import time
 
-import pikka_bird_collector.collector
-import pikka_bird_collector.sender
+from .collector import Collector
+from .sender import Sender
 
 
 class App():
@@ -14,11 +14,11 @@ class App():
         self.eternal = args.eternal
         self.logger  = logger
         
-        self.collector = pikka_bird_collector.collector.Collector(
-            config=args.config,
+        self.collector = Collector(
+            config=args.conf,
             logger=logger)
         
-        self.sender = pikka_bird_collector.sender.Sender(args.server_uri,
+        self.sender = Sender(args.server_uri,
             format=args.format,
             logger=logger)
     
@@ -44,7 +44,6 @@ class App():
     
     def __calculate_eternal_sleep(self):
         interval = self.eternal
-        
-        mid = round(interval / 2)
+        mid      = round(interval / 2)
         
         return random.randint(interval - mid, interval + mid)
