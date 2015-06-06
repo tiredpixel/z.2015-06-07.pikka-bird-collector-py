@@ -181,10 +181,10 @@ class TestSystem:
         assert type(metrics_memory['virtual']['free']['/']) == float
         assert type(metrics_memory['swap']['b']) in int_ish
         assert type(metrics_memory['swap']['used']['b']) in int_ish
-        if 'used' in metrics_memory['swap']:
+        if '/' in metrics_memory['swap']['used']:
             assert type(metrics_memory['swap']['used']['/']) == float
         assert type(metrics_memory['swap']['free']['b']) in int_ish
-        if 'free' in metrics_memory['swap']:
+        if '/' in metrics_memory['swap']['free']:
             assert type(metrics_memory['swap']['free']['/']) == float
         assert type(metrics_memory['swap']['sin']['b']) in int_ish
         assert type(metrics_memory['swap']['sout']['b']) in int_ish
