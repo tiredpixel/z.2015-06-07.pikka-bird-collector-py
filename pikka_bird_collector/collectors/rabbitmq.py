@@ -8,6 +8,8 @@ class Rabbitmq(BasePortCommand):
         
         The collector is enabled whenever non-empty settings are passed.
         
+        By default, core status and cluster status are gathered.
+        
         For consistency, a port is required for this collector even though
         `rabbitmqctl` doesn't accept one, instead returning all information;
         this might change. [TODO review]
