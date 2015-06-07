@@ -3,10 +3,21 @@ class Base():
         Base class, from which others inherit. Collector classes are passed the
         environment, in case they need to take OS-specific logic, etc. Classes
         should conform to the interface below.
+        
+        IMPLEMENT:
+            collect()
         """
     
-    def __init__(self, environment):
+    @classmethod
+    def service(cls):
+        """
+            Name of service the collector defines.
+            """
+        return cls.__name__.lower()
+    
+    def __init__(self, environment, settings):
         self.environment = environment
+        self.settings    = settings or {}
     
     def enabled(self):
         """
@@ -18,7 +29,7 @@ class Base():
                 : boolean
                     whether this collector is enabled for this run
             """
-        pass
+        return len(self.settings) >= 1
     
     def collect(self):
         """
@@ -30,7 +41,29 @@ class Base():
             each set of metrics nested under the port).
             
             RETURN:
-                : tuple (string, dict)
-                    (service, data)
+                : dict
+                    metrics data, the structure of which the collector is free
+                    to define for itself
             """
-        pass
+        pass # IMPLEMENT
+    
+    @staticmethod
+    def parse_str_setting_key(key):
+        return key.strip().lower()
+    
+    @staticmethod
+    def parse_str_setting_value(value):
+        v = value.strip()
+        
+        if v == '':
+            return None
+        
+        try:
+            v = int(v)
+        except ValueError:
+            try:
+                v = float(v)
+            except ValueError:
+                pass
+        
+        return v

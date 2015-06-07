@@ -37,7 +37,7 @@ class TestCollector:
         assert len(collection) == 4
         assert len(collection['environment']) == 4
         assert len(collection['environment']['platform']) == 3
-        assert len(collection['reports']) == 1
+        assert len(collection['reports']) >= 1
     
     def test_collect_mocked(self, monkeypatch):
         monkeypatch.setattr(platform, 'system', self.mock_system)
@@ -65,4 +65,4 @@ class TestCollector:
         assert len(collection) == 4
         assert len(collection['environment']) == 4
         assert len(collection['environment']['platform']) == 3
-        assert len(collection['reports']) == 1
+        assert len(collection['reports']) >= 1

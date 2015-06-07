@@ -142,28 +142,26 @@ class TestSystem:
             percent=0.01)
     
     def test_enabled(self):
-        system = System({})
+        system = System({}, {})
         
         assert system.enabled() == True
     
     def test_collect_live(self):
-        system = System({})
-        service, metrics = system.collect()
-        
-        assert service == 'system'
+        system = System({}, {})
+        metrics = system.collect()
         
         metrics_load = metrics['load']
         
-        assert type(metrics_load['1_min_avg']) == float
-        assert type(metrics_load['5_min_avg']) == float
-        assert type(metrics_load['15_min_avg']) == float
+        assert type(metrics_load['avg']['1']) == float
+        assert type(metrics_load['avg']['5']) == float
+        assert type(metrics_load['avg']['15']) == float
         
         metrics_cpu = metrics['cpu'][0] # hopefully at least 1 CPU! ;)
         
-        assert type(metrics_cpu['idle_/']) == float
-        assert type(metrics_cpu['busy_/']) == float
-        assert type(metrics_cpu['busy_user_/']) == float
-        assert type(metrics_cpu['busy_system_/']) == float
+        assert type(metrics_cpu['idle']['/']) == float
+        assert type(metrics_cpu['busy']['/']) == float
+        assert type(metrics_cpu['busy']['user']['/']) == float
+        assert type(metrics_cpu['busy']['system']['/']) == float
         
         metrics_memory = metrics['memory']
         
@@ -172,48 +170,48 @@ class TestSystem:
         except NameError:
             int_ish = [int]
         
-        assert type(metrics_memory['virtual_b']) in int_ish
-        assert type(metrics_memory['virtual_available_b']) in int_ish
-        assert type(metrics_memory['virtual_available_/']) == float
-        assert type(metrics_memory['virtual_unavailable_b']) in int_ish
-        assert type(metrics_memory['virtual_unavailable_/']) == float
-        assert type(metrics_memory['virtual_used_b']) in int_ish
-        assert type(metrics_memory['virtual_used_/']) == float
-        assert type(metrics_memory['virtual_free_b']) in int_ish
-        assert type(metrics_memory['virtual_free_/']) == float
-        assert type(metrics_memory['swap_b']) in int_ish
-        assert type(metrics_memory['swap_used_b']) in int_ish
-        if 'swap_used_/' in metrics_memory:
-            assert type(metrics_memory['swap_used_/']) == float
-        assert type(metrics_memory['swap_free_b']) in int_ish
-        if 'swap_free_/' in metrics_memory:
-            assert type(metrics_memory['swap_free_/']) == float
-        assert type(metrics_memory['sin_b']) in int_ish
-        assert type(metrics_memory['sout_b']) in int_ish
+        assert type(metrics_memory['virtual']['b']) in int_ish
+        assert type(metrics_memory['virtual']['avail']['b']) in int_ish
+        assert type(metrics_memory['virtual']['avail']['/']) == float
+        assert type(metrics_memory['virtual']['unavail']['b']) in int_ish
+        assert type(metrics_memory['virtual']['unavail']['/']) == float
+        assert type(metrics_memory['virtual']['used']['b']) in int_ish
+        assert type(metrics_memory['virtual']['used']['/']) == float
+        assert type(metrics_memory['virtual']['free']['b']) in int_ish
+        assert type(metrics_memory['virtual']['free']['/']) == float
+        assert type(metrics_memory['swap']['b']) in int_ish
+        assert type(metrics_memory['swap']['used']['b']) in int_ish
+        if '/' in metrics_memory['swap']['used']:
+            assert type(metrics_memory['swap']['used']['/']) == float
+        assert type(metrics_memory['swap']['free']['b']) in int_ish
+        if '/' in metrics_memory['swap']['free']:
+            assert type(metrics_memory['swap']['free']['/']) == float
+        assert type(metrics_memory['swap']['sin']['b']) in int_ish
+        assert type(metrics_memory['swap']['sout']['b']) in int_ish
         
         metrics_disk = metrics['disk']['/']
         
-        assert type(metrics_disk['block_size_b']) in int_ish
-        assert type(metrics_disk['fragment_size_b']) in int_ish
-        assert type(metrics_disk['blocks']) in int_ish
-        assert type(metrics_disk['blocks_free']) in int_ish
-        assert type(metrics_disk['blocks_free_/']) == float
-        assert type(metrics_disk['blocks_free_unpriv']) in int_ish
-        assert type(metrics_disk['blocks_free_unpriv_/']) == float
-        assert type(metrics_disk['inodes']) in int_ish
-        assert type(metrics_disk['inodes_free']) in int_ish
-        assert type(metrics_disk['inodes_free_/']) == float
-        assert type(metrics_disk['inodes_free_unpriv']) in int_ish
-        assert type(metrics_disk['inodes_free_unpriv_/']) == float
+        assert type(metrics_disk['block_size']['b']) in int_ish
+        assert type(metrics_disk['fragment_size']['b']) in int_ish
+        assert type(metrics_disk['blocks']['n']) in int_ish
+        assert type(metrics_disk['blocks']['free']['n']) in int_ish
+        assert type(metrics_disk['blocks']['free']['/']) == float
+        assert type(metrics_disk['blocks']['avail']['n']) in int_ish
+        assert type(metrics_disk['blocks']['avail']['/']) == float
+        assert type(metrics_disk['inodes']['n']) in int_ish
+        assert type(metrics_disk['inodes']['free']['n']) in int_ish
+        assert type(metrics_disk['inodes']['free']['/']) == float
+        assert type(metrics_disk['inodes']['avail']['n']) in int_ish
+        assert type(metrics_disk['inodes']['avail']['/']) == float
         assert type(metrics_disk['flags']) in int_ish
         assert type(metrics_disk['filename_len_max']) in int_ish
         assert type(metrics_disk['device']) == str
         assert type(metrics_disk['fstype']) == str
-        assert type(metrics_disk['space_b']) in int_ish
-        assert type(metrics_disk['space_used_b']) in int_ish
-        assert type(metrics_disk['space_used_/']) == float
-        assert type(metrics_disk['space_free_b']) in int_ish
-        assert type(metrics_disk['space_free_/']) == float
+        assert type(metrics_disk['space']['b']) in int_ish
+        assert type(metrics_disk['space']['used']['b']) in int_ish
+        assert type(metrics_disk['space']['used']['/']) == float
+        assert type(metrics_disk['space']['free']['b']) in int_ish
+        assert type(metrics_disk['space']['free']['/']) == float
     
     def test_collect_mocked(self, monkeypatch):
         monkeypatch.setattr(os, 'getloadavg', self.mock_getloadavg)
@@ -228,126 +226,134 @@ class TestSystem:
                 self.mock_disk_partitions)
         monkeypatch.setattr(psutil, 'disk_usage', self.mock_disk_usage)
         
-        system = System({})
-        service, metrics = system.collect()
-        
-        assert service == 'system'
+        system = System({}, {})
+        metrics = system.collect()
         
         # round floats (like beach balls)
         
-        for metric in [
-            'idle_/',
-            'busy_/',
-            'busy_user_/',
-            'busy_system_/',
-            'busy_nice_/',
-            'busy_iowait_/',
-            'busy_irq_/',
-            'busy_softirq_/',
-            'busy_steal_/',
-            'busy_guest_/',
-            'busy_guest_nice_/']:
-            metrics['cpu'][0][metric] = round(
-                    metrics['cpu'][0][metric], 2)
+        def round_dict(d):
+            for k, v in d.items():
+                if type(v) == dict:
+                    d[k] = round_dict(v)
+                elif k == '/':
+                    d[k] = round(v, 2)
+            return d
         
-        for metric in [
-            'virtual_available_/',
-            'virtual_unavailable_/',
-            'virtual_used_/',
-            'virtual_free_/',
-            'virtual_active_/',
-            'virtual_inactive_/',
-            'virtual_buffers_/',
-            'virtual_cached_/',
-            'virtual_wired_/',
-            'virtual_shared_/',
-            'swap_used_/',
-            'swap_free_/']:
-            metrics['memory'][metric] = round(
-                    metrics['memory'][metric], 2)
-        
-        for metric in [
-            'blocks_free_/',
-            'blocks_free_unpriv_/',
-            'inodes_free_/',
-            'inodes_free_unpriv_/',
-            'space_used_/',
-            'space_free_/']:
-            metrics['disk']['/'][metric] = round(
-                    metrics['disk']['/'][metric], 2)
+        round_dict(metrics['cpu'][0])
+        round_dict(metrics['memory'])
+        round_dict(metrics['disk']['/'])
         
         #
         
         assert metrics == {
             'load': {
-                '1_min_avg': 42.0,
-                '5_min_avg': 84.0,
-                '15_min_avg': 126.0},
+                'avg': {
+                    '1': 42.0,
+                    '5': 84.0,
+                    '15': 126.0}},
             'cpu': {
                 0: {
-                    'idle_/': 0.55,
-                    'busy_/': 0.45,
-                    'busy_user_/': 0.01,
-                    'busy_system_/': 0.02,
-                    'busy_nice_/': 0.03,
-                    'busy_iowait_/': 0.04,
-                    'busy_irq_/': 0.05,
-                    'busy_softirq_/': 0.06,
-                    'busy_steal_/': 0.07,
-                    'busy_guest_/': 0.08,
-                    'busy_guest_nice_/': 0.09}},
+                    'idle': {
+                        '/': 0.55},
+                    'busy': {
+                        '/': 0.45,
+                        'user': {
+                            '/': 0.01},
+                        'system': {
+                            '/': 0.02},
+                        'nice': {
+                            '/': 0.03},
+                        'iowait': {
+                            '/': 0.04},
+                        'irq': {
+                            '/': 0.05},
+                        'softirq': {
+                            '/': 0.06},
+                        'steal': {
+                            '/': 0.07},
+                        'guest': {
+                            '/': 0.08},
+                        'guest_nice': {
+                            '/': 0.09}}}},
             'memory': {
-                'virtual_b': 8589934592,
-                'virtual_available_b': 4248592384,
-                'virtual_available_/': 0.49,
-                'virtual_unavailable_b': 4341342208,
-                'virtual_unavailable_/': 0.51,
-                'virtual_used_b': 4688113664,
-                'virtual_used_/': 0.55,
-                'virtual_free_b': 3279757312,
-                'virtual_free_/': 0.38,
-                'virtual_active_b': 2415570944,
-                'virtual_active_/': 0.28,
-                'virtual_inactive_b': 968835072,
-                'virtual_inactive_/': 0.11,
-                'virtual_buffers_b': 258020000,
-                'virtual_buffers_/': 0.03,
-                'virtual_cached_b': 241716800,
-                'virtual_cached_/': 0.03,
-                'virtual_wired_b': 1303707648,
-                'virtual_wired_/': 0.15,
-                'virtual_shared_b': 50448000,
-                'virtual_shared_/': 0.01,
-                'swap_b': 2147483648,
-                'swap_used_b': 1196949504,
-                'swap_used_/': 0.56,
-                'swap_free_b': 950534144,
-                'swap_free_/': 0.44,
-                'sin_b': 66084589568,
-                'sout_b': 1213657088},
+                'virtual': {
+                    'b': 8589934592,
+                    'avail': {
+                        'b': 4248592384,
+                        '/': 0.49},
+                    'unavail': {
+                        'b': 4341342208,
+                        '/': 0.51},
+                    'used': {
+                        'b': 4688113664,
+                        '/': 0.55},
+                    'free': {
+                        'b': 3279757312,
+                        '/': 0.38},
+                    'active': {
+                        'b': 2415570944,
+                        '/': 0.28},
+                    'inactive': {
+                        'b': 968835072,
+                        '/': 0.11},
+                    'buffers': {
+                        'b': 258020000,
+                        '/': 0.03},
+                    'cached': {
+                        'b': 241716800,
+                        '/': 0.03},
+                    'wired': {
+                        'b': 1303707648,
+                        '/': 0.15},
+                    'shared': {
+                        'b': 50448000,
+                        '/': 0.01}},
+                'swap': {
+                    'b': 2147483648,
+                    'used': {
+                        'b': 1196949504,
+                        '/': 0.56},
+                    'free': {
+                        'b': 950534144,
+                        '/': 0.44},
+                    'sin': {
+                        'b': 66084589568},
+                    'sout': {
+                        'b': 1213657088}}},
             'disk': {
                 '/': {
-                    'block_size_b': 1764,
-                    'fragment_size_b': 1765,
-                    'blocks': 42,
-                    'blocks_free': 74088,
-                    'blocks_free_/': 1764.0,
-                    'blocks_free_unpriv': 1768,
-                    'blocks_free_unpriv_/': 42.1,
-                    'inodes': 1769,
-                    'inodes_free': 130691232,
-                    'inodes_free_/': 73878.59,
-                    'inodes_free_unpriv': 3111696,
-                    'inodes_free_unpriv_/': 1759.01,
+                    'block_size': {
+                        'b': 1764},
+                    'fragment_size': {
+                        'b': 1765},
+                    'blocks': {
+                        'n': 42,
+                        'free': {
+                            'n': 74088,
+                            '/': 1764.0},
+                        'avail': {
+                            'n': 1768,
+                            '/': 42.1}},
+                    'inodes': {
+                        'n': 1769,
+                        'free': {
+                            'n': 130691232,
+                            '/': 73878.59},
+                        'avail': {
+                            'n': 3111696,
+                            '/': 1759.01}},
                     'flags': 1772,
                     'filename_len_max': 1773,
                     'device': '/dev/disk42',
                     'fstype': 'zaphod',
-                    'space_b': 100440011101,
-                    'space_used_b': 1800538114,
-                    'space_used_/': 0.02,
-                    'space_free_b': 98639472987,
-                    'space_free_/': 0.98}}}
+                    'space': {
+                        'b': 100440011101,
+                        'used': {
+                            'b': 1800538114,
+                            '/': 0.02},
+                        'free': {
+                            'b': 98639472987,
+                            '/': 0.98}}}}}
     
     def test_collect_swap_zero_total(self, monkeypatch):
         monkeypatch.setattr(os, 'getloadavg', self.mock_getloadavg)
@@ -362,10 +368,8 @@ class TestSystem:
                 self.mock_disk_partitions)
         monkeypatch.setattr(psutil, 'disk_usage', self.mock_disk_usage)
         
-        system = System({})
-        service, metrics = system.collect()
-        
-        assert service == 'system'
+        system = System({}, {})
+        metrics = system.collect()
     
     def test_collect_load_oserror(self, monkeypatch):
         def mock_getloadavg():
@@ -373,10 +377,8 @@ class TestSystem:
         
         monkeypatch.setattr(os, 'getloadavg', mock_getloadavg)
         
-        system = System({})
-        service, metrics = system.collect()
-        
-        assert service == 'system'
+        system = System({}, {})
+        metrics = system.collect()
         
         assert metrics['load'] == {}
     
@@ -386,10 +388,8 @@ class TestSystem:
         
         monkeypatch.setattr(os, 'statvfs', mock_statvfs)
         
-        system = System({})
-        service, metrics = system.collect()
-        
-        assert service == 'system'
+        system = System({}, {})
+        metrics = system.collect()
         
         assert metrics['disk']['/'] == {}
     
@@ -399,9 +399,7 @@ class TestSystem:
         
         monkeypatch.setattr(psutil, 'disk_usage', mock_disk_usage)
         
-        system = System({})
-        service, metrics = system.collect()
-        
-        assert service == 'system'
+        system = System({}, {})
+        metrics = system.collect()
         
         assert metrics['disk']['/'] == {}
